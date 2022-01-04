@@ -1,0 +1,31 @@
+{
+    "name": "onpay/magento2",
+    "version": "1.0.0",
+    "description": "OnPay Payment Method",
+    "license": "MIT",
+    "keywords": [
+        "magneto2",
+        "payment",
+        "onpay"
+    ],
+    "authors": [
+        {
+            "name": "Julian F. Christmas - Intelligo Denmark ApS",
+            "email": "jc@intelligodenmark.dk"
+        }
+    ],
+    "require": {
+        "php": "7.*",
+        "magento/magento2-base": "^2.3.2",
+        "onpayio/php-sdk": "1.0.*",
+        "sokil/php-isocodes": "3.3.7"
+    },
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "OnPay\\OnPay\\": ""
+        }
+    }
+}

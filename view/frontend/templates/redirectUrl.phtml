@@ -1,0 +1,35 @@
+<?php
+    /**
+     * @var \OnPay\OnPay\Block\RedirectUrl $block
+     */
+    $orderId = $block->getOrderCookie();
+
+    $params = $block->getPostParams($orderId, 'N');
+?>
+
+<form id="onpay_window_form" method="post" action="https://onpay.io/window/v3/" accept-charset="UTF-8">
+
+    <?php 
+        if(count($params)) {
+            foreach($params as $key => $value) {
+    ?>
+        <input type="hidden" name="<?= $key; ?>" value="<?= $value; ?>">
+                
+    <?php 
+            }
+        }    
+    ?>
+
+    <input type="submit" style="display:none;" value="Start Payment">
+
+</form>
+
+<script type="text/javascript">
+    require([
+        'jquery'
+    ], function ($) {
+        'use strict';
+        $('#onpay_window_form').submit();
+    });
+
+</script>
