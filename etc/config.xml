@@ -18,6 +18,7 @@
 				<secure>forced</secure>
 				<design>window1</design>
 				<expiration>86400</expiration>
+				<minor_units>100</minor_units>
 			</onpaypaymentmethod>
 		</payment>
 	</default>

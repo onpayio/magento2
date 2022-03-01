@@ -1,11 +1,37 @@
 <?php
 
+/**
+ * OnPay Magento2 module
+ * php version 7.4.27
+ *
+ * @author    Julian F. Christmas <jc@intelligodenmark.dk>
+ * @copyright 2022 Team.blue Denmark A/S
+ * @license   http://opensource.org/licenses/gpl-3.0 GNU General Public License, version 3 (GPLv3)
+ * @link      https://intelligodenmark.dk
+ *
+ * @magento-module
+ * Plugin Name: OnPay Magento2
+ * Plugin URI: https://onpay.io
+ * Description: Collect payments using OnPay.io as PSP
+ * Author: Julian F. Christmas
+ * Version: 1.0.0
+ * Author URI: https://intelligodenmark.dk
+ */
+
 declare(strict_types=1);
 
 namespace OnPay\OnPay\Helper;
 
 use Magento\Framework\App\Helper\AbstractHelper;
 
+/**
+ * Config  OnPay\OnPay\Helper\Config
+ *
+ * @author    Julian F. Christmas <jc@intelligodenmark.dk>
+ * @copyright 2022 Team.blue Denmark A/S
+ * @license   http://opensource.org/licenses/gpl-3.0 GNU General Public License, version 3 (GPLv3)
+ * @link      https://intelligodenmark.dk
+ */
 class Config extends AbstractHelper
 {
     // Onpay Input
@@ -39,14 +65,14 @@ class Config extends AbstractHelper
     const WEBSITE = 'onpay_website';
     const TYPE = 'onpay_type';
     const METHOD = 'onpay_method';
-    const DELIVERY_DISABLED= 'onpay_delivery_disabled';
-    const SECURE= 'onpay_3dsecure';
-    const LANGUAGE= 'onpay_language';
-    const DESIGN= 'onpay_design';
-    const EXPIRATION= 'onpay_expiration';
-    const HASH_MAKE= 'onpay_hmac_sha1';
+    const DELIVERY_DISABLED = 'onpay_delivery_disabled';
+    const SECURE = 'onpay_3dsecure';
+    const LANGUAGE = 'onpay_language';
+    const DESIGN = 'onpay_design';
+    const EXPIRATION = 'onpay_expiration';
+    const HASH_MAKE = 'onpay_hmac_sha1';
 
-    private $hashCodeBuildParams = [
+    private $_hashCodeBuildParams = [
         self::GATEWAY_ID,
         self::CURRENCY,
         self::AMOUNT,
@@ -84,36 +110,48 @@ class Config extends AbstractHelper
         self::EXPIRATION,
     ];
 
-    const AMOUNT_MUL = 100;
-
-
     const MOBILE_PAY_CHECKOUT = 'mobilepay_checkout';
 
     const API_URL = 'https://api.onpay.io/v1/transaction/';
 
+    protected $_scopeConfig;
+
+    protected $urlBuilder;
+
+    protected $logger;
+
     /**
-     * __construct function
+     * @var \Magento\Framework\HTTP\Client\Curl
+     */
+    protected $_curl;
+
+    /**
+     * Construct Function
      *
-     * @param \Magento\Framework\App\Helper\Context $context
-     * @param \Magento\Framework\UrlInterface $urlBuilder
+     * @param \Magento\Framework\App\Helper\Context $context    Constructor modification point for Magento\Framework\App\Helper.
+     * @param \Magento\Framework\UrlInterface       $urlBuilder Url Builder
+     * @param \Magento\Payment\Model\Method\Logger  $logger     Class Logger for payment related information (request, response, etc.) which is used for debug
      */
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
         \Magento\Framework\UrlInterface $urlBuilder,
-        \Magento\Payment\Model\Method\Logger $logger
+        \Magento\Payment\Model\Method\Logger $logger,
+        \Magento\Framework\HTTP\Client\Curl $curl
     ) {
         $this->_scopeConfig = $context->getScopeConfig();
         $this->urlBuilder = $urlBuilder;
         $this->logger = $logger;
+        $this->_curl = $curl;
         parent::__construct($context);
     }
 
     /**
-     * isConfigValue function
+     * Function isConfigValue
      *
-     * @param string $path
-     * @param null $store
-     * @return void
+     * @param [type] $path  Path
+     * @param [type] $store Store
+     *
+     * @return boolean
      */
     public function isConfigValue($path, $store = null)
     {
@@ -125,7 +163,7 @@ class Config extends AbstractHelper
     }
 
     /**
-     * isEnable function
+     * Function isEnable
      *
      * @return boolean
      */
@@ -135,7 +173,7 @@ class Config extends AbstractHelper
     }
 
     /**
-     * isTestMode function
+     * Function isTestMode
      *
      * @return boolean
      */
@@ -145,7 +183,7 @@ class Config extends AbstractHelper
     }
 
     /**
-     * getGatewayId function
+     * Function getGatewayId
      *
      * @return string
      */
@@ -155,7 +193,7 @@ class Config extends AbstractHelper
     }
 
     /**
-     * getWindowSecret function
+     * Function getWindowSecret
      *
      * @return string
      */
@@ -165,7 +203,7 @@ class Config extends AbstractHelper
     }
 
     /**
-     * getApiKey function
+     * Function getApiKey
      *
      * @return string
      */
@@ -175,7 +213,7 @@ class Config extends AbstractHelper
     }
 
     /**
-     * getPaymentWindowLanguage function
+     * Function getPaymentWindowLanguage
      *
      * @return string
      */
@@ -185,7 +223,7 @@ class Config extends AbstractHelper
     }
 
     /**
-     * getPaymentWindowLanguage function
+     * Function getPaymentWindowLanguage
      *
      * @return string
      */
@@ -195,7 +233,7 @@ class Config extends AbstractHelper
     }
 
     /**
-     * getPaymentWindowLanguage function
+     * Function getPaymentWindowLanguage
      *
      * @return string
      */
@@ -205,7 +243,7 @@ class Config extends AbstractHelper
     }
 
     /**
-     * getPaymentWindowLanguage function
+     * Function getPaymentWindowLanguage
      *
      * @return string
      */
@@ -215,20 +253,20 @@ class Config extends AbstractHelper
     }
 
     /**
-     * getDeliveryDisabled function
+     * Function getDeliveryDisabled
      *
      * @return string
      */
     public function getDeliveryDisabled()
     {
-        if($this->getMethod()== self::MOBILE_PAY_CHECKOUT) {
+        if ($this->getMethod() == self::MOBILE_PAY_CHECKOUT) {
             return $this->isConfigValue('payment/onpaypaymentmethod/delivery_disabled');
         }
         return '';
     }
 
     /**
-     * getSecure function
+     * Function getSecure
      *
      * @return string
      */
@@ -238,7 +276,7 @@ class Config extends AbstractHelper
     }
 
     /**
-     * getDesign function
+     * Function getDesign
      *
      * @return string
      */
@@ -248,7 +286,7 @@ class Config extends AbstractHelper
     }
 
     /**
-     * getExpiration function
+     * Function getExpiration
      *
      * @return string
      */
@@ -258,7 +296,7 @@ class Config extends AbstractHelper
     }
 
     /**
-     * getOrderStatusAfterPayment function
+     * Function getOrderStatusAfterPayment
      *
      * @return string
      */
@@ -268,7 +306,7 @@ class Config extends AbstractHelper
     }
 
     /**
-     * getOrderStatusAfterPayment function
+     * Function getOrderStatusAfterPayment
      *
      * @return boolean
      */
@@ -278,7 +316,7 @@ class Config extends AbstractHelper
     }
 
     /**
-     * getAcceptUrl function
+     * Function getAcceptUrl
      *
      * @return string
      */
@@ -288,7 +326,7 @@ class Config extends AbstractHelper
     }
 
     /**
-     * getDeclineUrl function
+     * Function getDeclineUrl
      *
      * @return string
      */
@@ -298,7 +336,7 @@ class Config extends AbstractHelper
     }
 
     /**
-     * getWebsiteUrl function
+     * Function getWebsiteUrl
      *
      * @return string
      */
@@ -308,7 +346,7 @@ class Config extends AbstractHelper
     }
 
     /**
-     * getCallbacUrl function
+     * Function getCallbacUrl
      *
      * @return string
      */
@@ -318,19 +356,20 @@ class Config extends AbstractHelper
     }
 
     /**
-     * buildHashCode function
+     * Function buildHashCode
      *
-     * @param array $params
+     * @param array $params Params
+     *
      * @return string
      */
     public function buildHashCode(array $params)
-    {   
+    {
         ksort($params);
 
         $toHashArray = [];
 
-        foreach($params as $key => $value){
-            if (0 === strpos($key, 'onpay_') && self::HASH_MAKE !== $key && in_array($key, $this->hashCodeBuildParams)) {
+        foreach ($params as $key => $value) {
+            if (0 === strpos($key, 'onpay_') && self::HASH_MAKE !== $key && in_array($key, $this->_hashCodeBuildParams)) {
                 $toHashArray[$key] = $value;
             }
         }
@@ -340,55 +379,71 @@ class Config extends AbstractHelper
         return hash_hmac('sha1', $queryString, $this->getWindowSecret());
     }
 
+    /**
+     * Function checkHashCode
+     *
+     * @param [type] $additionalInformation Additional Information
+     *
+     * @return void
+     */
     public function checkHashCode($additionalInformation)
     {
-        $hashCode= $this->buildHashCode($additionalInformation);
+        $hashCode = $this->buildHashCode($additionalInformation);
 
         //if($hashCode == $additionalInformation[self::HASH_MAKE]) {
-            return true;
+        return true;
         //}
-        return false;
+        //return false;
     }
 
+    /**
+     * Function connectToOnPayTransaction
+     *
+     * @param [type] $type   Type
+     * @param [type] $tranId Transaction Id
+     * @param [type] $method Method
+     * @param [type] $amount Amount
+     *
+     * @return void
+     */
     public function connectToOnPayTransaction($type, $tranId, $method, $amount)
     {
-        $postData =[];
-        if($amount){
+
+        $minor_units = $this->isConfigValue('payment/onpaypaymentmethod/minor_units');
+
+        $postData = [];
+        if ($amount) {
             $postData = [
-                'data'=>[
-                    'amount'=>(int)($amount*self::AMOUNT_MUL)
+                'data' => [
+                    'amount' => (int)($amount * $minor_units)
                 ]
             ];
         }
 
-        try{
-            $apiUrl = self::API_URL.$tranId.'/'.$type;
-            $ch = curl_init($apiUrl);
-            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt ($ch, CURLOPT_SSL_VERIFYHOST, 0);
-            curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, 0);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData));
-            curl_setopt($ch, CURLOPT_HTTPHEADER, array(
-                'Content-Type: application/json',
-                'Authorization: Bearer '.$this->getApiKey()
-            ));
+        try {
+            $apiUrl = self::API_URL . $tranId . '/' . $type;
 
-            $jsonResponse = curl_exec($ch);
-            $response = json_decode($jsonResponse,true);
+            $headers = [
+                "Authorization" => "Bearer {$this->getApiKey()}",
+                "Content-Type" => "application/json"
+            ];
 
-        }catch(\Exception $e) {
+            $this->_curl->setHeaders($headers);
+            $this->_curl->post($apiUrl, $postData);
+
+            $response = $this->_curl->getBody();
+            $response = json_decode($response, true);
+        } catch (\Exception $e) {
             $this->logger->debug($e->getMessage());
-            $response=[
-                'errors'=>[
+            $response = [
+                'errors' => [
                     [
-                        'message'=>$e->getMessage()
+                        'message' => $e->getMessage()
                     ]
                 ]
             ];
-        }finally{
+        } finally {
             return $response;
         }
-        
     }
 }

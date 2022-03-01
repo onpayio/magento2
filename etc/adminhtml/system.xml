@@ -4,6 +4,11 @@
 		<section id="payment" sortOrder="1000" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
 			<group id="onpaypaymentmethod" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
 				<label>OnPay</label>
+				<field id="button_id" translate="label" type="button" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+    <label></label>
+    <frontend_model>OnPay\OnPay\Block\System\Config\Button</frontend_model>
+</field>
+				
 				<field id="active" type="select" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
 					<label>Enabled</label>
 					<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
@@ -39,10 +44,6 @@
 					<label>Type</label>
 					<source_model>OnPay\OnPay\Model\Config\Source\Type</source_model>
 				</field>
-				<field id="method" type="select" sortOrder="82" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-					<label>Method</label>
-					<source_model>OnPay\OnPay\Model\Config\Source\Methods</source_model>
-				</field>
 				<field id="delivery_disabled" type="select" sortOrder="83" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
 					<label>Delivery Disabled</label>
 					<source_model>OnPay\OnPay\Model\Config\Source\DeliveryDisabled</source_model>
@@ -58,11 +59,17 @@
 					<label>Design</label>
 					<source_model>OnPay\OnPay\Model\Config\Source\Design</source_model>
 				</field>
+				<field id="minor_units" type="text" sortOrder="86" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+					<label>Minor Units</label>
+					<validate>required-entry validate-digits</validate>
+				</field>
+				
 				<field id="expiration" type="text" sortOrder="86" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
 					<label>Expiration</label>
 					<validate>required-entry validate-digits</validate>
 					<comment>Seconds that the payment will be available before expiring.</comment>
 				</field>
+				
 				<field id="allowspecific" type="allowspecific" sortOrder="90" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
 					<label>Payment from Applicable Countries</label>
 					<source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
