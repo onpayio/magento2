@@ -15,9 +15,10 @@
         }
     ],
     "require": {
-        "php": "7.*",
+        "php": "^7.4 || ^8.0",
         "magento/magento2-base": "^2.3.2",
-        "onpayio/php-sdk": "1.0.*",
+        "onpayio/php-sdk": "^1.0",
+        "alcohol/iso4217": "^3.1",
         "sokil/php-isocodes": "3.3.7"
     },
     "autoload": {

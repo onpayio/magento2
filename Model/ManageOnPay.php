@@ -20,7 +20,17 @@
 
 namespace OnPay\Magento2\Model;
 
+use Magento\Checkout\Model\Session;
+use Magento\Framework\App\ScopeInterface;
+use Magento\Sales\Api\OrderManagementInterface;
+use Magento\Sales\Api\Data\OrderPaymentInterface;
+use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order\Payment\Transaction;
+use Magento\Sales\Model\Order\Payment\Transaction\BuilderInterface;
+use Magento\Sales\Model\OrderFactory;
+use OnPay\API\PaymentWindow;
+use OnPay\Magento2\Helper\Config;
+use OnPay\OnPayAPI;
 
 /**
  * ManageOnPay Magento\Sales\Model\Order\Payment\Transaction\ManageOnPay
@@ -32,56 +42,97 @@ use Magento\Sales\Model\Order\Payment\Transaction;
  */
 class ManageOnPay
 {
-    /**
-     * Helper variable
-     *
-     * @var \OnPay\OnPay\Helper\Config
-     */
-    public $helper;
+    protected Config $helper;
 
-    /**
-     * OrderFactory variable
-     *
-     * @var \Magento\Sales\Model\OrderFactory
-     */
-    public $orderFactory;
+    protected OnPayAPI $onPayApi;
 
-    public $orderManagement;
+    protected OrderFactory $orderFactory;
 
-    public $transactionBuilder;
+    protected OrderManagementInterface $orderManagement;
+
+    protected BuilderInterface $transactionBuilder;
+
+    protected Session $checkoutSession;
 
     /**
      * __construct function
      *
-     * @param \OnPay\OnPay\Helper\Config                                      $helper             Helper
-     * @param \Magento\Sales\Model\OrderFactory                               $orderFactory       order Factory
-     * @param \Magento\Sales\Api\OrderManagementInterface                     $orderManagement    order Management
-     * @param \Magento\Sales\Model\Order\Payment\Transaction\BuilderInterface $transactionBuilder transaction Builder
+     * @param Config $helper Helper
+     * @param OrderFactory $orderFactory order Factory
+     * @param OrderManagementInterface $orderManagement order Management
+     * @param BuilderInterface $transactionBuilder transaction Builder
      */
     public function __construct(
-        \OnPay\OnPay\Helper\Config $helper,
-        \Magento\Sales\Model\OrderFactory $orderFactory,
-        \Magento\Sales\Api\OrderManagementInterface $orderManagement,
-        \Magento\Sales\Model\Order\Payment\Transaction\BuilderInterface $transactionBuilder
+        Config              $helper,
+        OrderFactory             $orderFactory,
+        OrderManagementInterface $orderManagement,
+        BuilderInterface         $transactionBuilder,
+        Session                  $checkoutSession
     ) {
         $this->helper = $helper;
         $this->orderFactory = $orderFactory;
         $this->orderManagement = $orderManagement;
         $this->transactionBuilder = $transactionBuilder;
+        $this->checkoutSession = $checkoutSession;
+
+        $tokenStorage = new OnPayTokenStorage($helper);
+        $this->onPayApi = new OnPayAPI($tokenStorage, [
+            'client_id' => $helper->getWebsiteUrl(),
+            'redirect_uri' => $helper->getAuthorizeUrl(),
+            'gateway_id' => $helper->getGatewayId(),
+        ]);
     }
 
     /**
-     * Payment accept
-     *
-     * @param $post all post values
-     *
      * @return array
+     */
+    public function getPaymentWindowDesigns()
+    {
+        return $this->onPayApi->gateway()->getPaymentWindowDesigns()->paymentWindowDesigns;
+    }
+
+    /**
+     * Return URL to redirect to OAuth2 authorization flow
+     * @return string
+     */
+    public function getAuthorizeUrl()
+    {
+        return $this->onPayApi->authorize();
+    }
+
+    /**
+     * Handle OAuth2 result
+     * @param string $code
+     * @return void
+     */
+    public function finishAuthorization($code)
+    {
+        $this->onPayApi->finishAuthorize($code);
+
+        $gatewayId = $this->onPayApi->gateway()->getInformation()->gatewayId;
+        $this->helper->setGatewayId($gatewayId);
+
+        $window_secret = $this->onPayApi->gateway()->getPaymentWindowIntegrationSettings()->secret;
+        $this->helper->setWindowSecret($window_secret);
+    }
+
+    /**
+     * Validate and store Payment accept
+     *
+     * @param array $post all post values
+     *
+     * @return bool
      */
     public function accept($post)
     {
         $response = false;
 
-        if (isset($post['onpay_reference'])) {
+        $paymentWindow = new PaymentWindow();
+        $paymentWindow->setGatewayId($this->helper->getGatewayId());
+        $paymentWindow->setSecret($this->helper->getWindowSecret());
+
+        if ($paymentWindow->validatePayment($post)) {
+            $response = true;
 
             $orderId = $post['onpay_reference'];
 
@@ -90,136 +141,121 @@ class ManageOnPay
                 ->create();
             $order->loadByIncrementId($orderId);
 
-            $response = $this
-                ->helper
-                ->checkHashCode(
-                    $order->getPayment()
-                        ->getAdditionalInformation()
-                );
-
-            if ($response) {
-
-                $this->updateTransactionInformation($post, $order);
-
-                if (isset($post['onpay_uuid'])) {
-
-                    $order
-                        ->addStatusHistoryComment(
-                            __(
-                                "OnPay - Transaction Authorized. 
-					Authorized Id: %1 -authorized",
-                                $post['onpay_uuid']
-                            )
-                        );
-                    $order->save();
-                }
-            }
+            $this->updateTransactionInformation($post, $order);
         }
 
         return $response;
     }
 
     /**
-     * Payment decline
+     * Store Payment decline
      *
-     * @param $post all post values
+     * @param array $post all post values
      *
-     * @return array
+     * @return bool
      */
     public function decline($post)
     {
-        $response = false;
+        $response = true;
+        $orderId = $post['onpay_reference'];
 
-        if (isset($post['onpay_reference'])) {
+        $order = $this
+            ->orderFactory
+            ->create();
+        $order->loadByIncrementId($orderId);
 
-            $orderId = $post['onpay_reference'];
+        // Set Payment Additional Information
+        $this
+            ->updatePaymentAdditionalInformation(
+                $post,
+                $order->getPayment()
+            );
 
-            $order = $this
-                ->orderFactory
-                ->create();
-            $order->loadByIncrementId($orderId);
+        $this->checkoutSession->restoreQuote();
 
-            $response = $this
-                ->helper
-                ->checkHashCode(
-                    $order->getPayment()
-                        ->getAdditionalInformation()
-                );
+        // Add Comment
+        $order
+            ->addStatusHistoryComment(
+                __("OnPay - Payment declined")
+            );
+        $order->save();
 
-            if ($response) {
+        $this
+            ->orderManagement
+            ->cancel($order->getId());
 
-                // Set Payment Additional Information
-                $this
-                    ->updatePaymentAdditionalInformation(
-                        $post,
-                        $order->getPayment()
-                    );
-
-                // Add Comment
-                $order
-                    ->addStatusHistoryComment(
-                        __("OnPay - Payment declined")
-                    );
-                $order->save();
-
-                $this
-                    ->orderManagement
-                    ->cancel($order->getId());
-            }
-        }
 
         return $response;
     }
+
     /**
      * Update Payment Additional Information
      *
-     * @param $post    all post values
-     * @param $payment payment object
+     * @param array $post    all post values
+     * @param OrderPaymentInterface $payment payment object
      *
-     * @return boolean
+     * @return void
      */
-    public function updatePaymentAdditionalInformation($post, $payment)
+    public function updatePaymentAdditionalInformation($post, OrderPaymentInterface $payment)
     {
         $additionInformation = $payment->getAdditionalInformation();
         $additionInformation = array_merge($additionInformation, $post);
         $payment->setAdditionalInformation($additionInformation);
         $payment->save();
     }
+
     /**
      * Update Transaction Information
      *
-     * @param $post  all post values
-     * @param $order order abject
+     * @param array  $post  all post values
+     * @param OrderInterface $order order abject
      *
-     * @return boolean
+     * @return void
      */
-    public function updateTransactionInformation($post, $order)
+    private function updateTransactionInformation($post, OrderInterface $order)
     {
         $payment = $order->getPayment();
 
         $payment->setLastTransId($post['onpay_uuid']);
         $payment->setTransactionId($post['onpay_uuid']);
+        $payment->setIsTransactionClosed(false);
+
+        $transactionComment = __("OnPay - Transaction Authorized.");
+
+        if (isset($post['onpay_uuid'])) {
+            $transactionComment = __(
+                "OnPay - Transaction Authorized.
+					Authorized Id: %1 -authorized",
+                $post['onpay_uuid'],
+            );
+
+            $payment->setAdditionalInformation("OnpayUUID", $post['onpay_uuid']);
+        }
 
         if ($post['onpay_3dsecure']) {
             $payment->setCcSecureVerify($post['onpay_3dsecure']);
         }
 
-        switch ($post['onpay_method']) {
-            case 'card':
-                $payment->setCcType($post['onpay_cardtype']);
+        if ($post['onpay_method'] == 'card') {
+            $payment->setCcType($post['onpay_cardtype']);
+            if (array_key_exists('onpay_cardmask', $post)) {
                 $payment->setCcLast4(substr($post['onpay_cardmask'], -4));
-                break;
+                $payment->setCcNumberEnc($post['onpay_cardmask']);
+            }
+            if (array_key_exists('onpay_expiry_month', $post)) {
+                $payment->setCcExpMonth($post['onpay_expiry_month']);
+            }
+            if (array_key_exists('onpay_expiry_year', $post)) {
+                $payment->setCcExpYear($post['onpay_expiry_year']);
+            }
         }
 
-        $transaction = $this
-            ->transactionBuilder
-            ->setPayment($payment)->setOrder($order)
-            ->setTransactionId($post['onpay_uuid'])
-            ->setAdditionalInformation([Transaction::RAW_DETAILS => (array)$post])
-            ->setFailSafe(false)
-            ->build(Transaction::TYPE_ORDER);
+        $transaction = $payment->addTransaction(Transaction::TYPE_AUTH);
+        $payment->addTransactionCommentsToOrder($transaction, $transactionComment);
+
+        $payment->setAdditionalInformation(Transaction::RAW_DETAILS, (array)$post);
 
         $payment->save();
-        $transaction->save();
+        $order->save();
     }
 }

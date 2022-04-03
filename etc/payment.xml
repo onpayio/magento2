@@ -9,5 +9,20 @@
 		<method name="onpaypaymentmethod">
 			<allow_multiple_address>1</allow_multiple_address>
 		</method>
+		<method name="onpay_card">
+			<allow_multiple_address>1</allow_multiple_address>
+		</method>
+		<method name="onpay_mobilepay">
+			<allow_multiple_address>1</allow_multiple_address>
+		</method>
+		<method name="onpay_googlepay">
+			<allow_multiple_address>1</allow_multiple_address>
+		</method>
+		<method name="onpay_viabill">
+			<allow_multiple_address>1</allow_multiple_address>
+		</method>
+		<method name="onpay_anyday">
+			<allow_multiple_address>1</allow_multiple_address>
+		</method>
 	</methods>
 </payment>

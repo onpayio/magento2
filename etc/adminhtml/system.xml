@@ -27,14 +27,15 @@
 				<field id="gateway_id" type="text" sortOrder="50" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
 					<label>Gateway ID</label>
 					<validate>required-entry</validate>
+					<frontend_model>OnPay\Magento2\Block\System\Config\Readonly</frontend_model>
 				</field>
 				<field id="window_secret" type="text" sortOrder="60" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
 					<label>Window secret</label>
 					<validate>required-entry</validate>
+					<frontend_model>OnPay\Magento2\Block\System\Config\Readonly</frontend_model>
 				</field>
-				<field id="api_key" type="text" sortOrder="70" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-					<label>API key</label>
-					<validate>required-entry</validate>
+				<field id="refresh_token" type="text" sortOrder="70" showInWebsite="0" showInStore="0" showInDefault="0" translate="label">
+					<label>Refresh Token</label>
 				</field>
 				<field id="payment_window_language" type="select" sortOrder="80" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
 					<label>Payment window language</label>
@@ -59,17 +60,11 @@
 					<label>Design</label>
 					<source_model>OnPay\Magento2\Model\Config\Source\Design</source_model>
 				</field>
-				<field id="minor_units" type="text" sortOrder="86" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-					<label>Minor Units</label>
-					<validate>required-entry validate-digits</validate>
-				</field>
-				
 				<field id="expiration" type="text" sortOrder="86" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
 					<label>Expiration</label>
 					<validate>required-entry validate-digits</validate>
 					<comment>Seconds that the payment will be available before expiring.</comment>
 				</field>
-				
 				<field id="allowspecific" type="allowspecific" sortOrder="90" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
 					<label>Payment from Applicable Countries</label>
 					<source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>

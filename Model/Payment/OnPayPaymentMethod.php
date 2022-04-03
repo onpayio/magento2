@@ -22,9 +22,26 @@ declare(strict_types=1);
 
 namespace OnPay\Magento2\Model\Payment;
 
+use Magento\Framework\Api\AttributeValueFactory;
+use Magento\Framework\Api\ExtensionAttributesFactory;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\Data\Collection\AbstractDb;
+use Magento\Framework\Model\Context;
+use Magento\Framework\Model\ResourceModel\AbstractResource;
+use Magento\Framework\Registry;
+use Magento\Payment\Helper\Data;
+use Magento\Payment\Model\InfoInterface;
+use Magento\Payment\Model\Method\AbstractMethod;
+use Magento\Payment\Model\Method\Logger;
+use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\Order\Payment\Transaction;
-use Magento\Sales\Api\InvoiceRepositoryInterface;
 use Magento\Framework\Validator\Exception as ValidatorException;
+use Magento\Sales\Model\Order\Payment\Transaction\BuilderInterface;
+use OnPay\API\Transaction\DetailedTransaction;
+use OnPay\Magento2\Helper\Config;
+use OnPay\Magento2\Helper\Currency;
+use OnPay\Magento2\Model\OnPayTokenStorage;
+use OnPay\OnPayAPI;
 
 /**
  * OnPayPaymentMethod OnPay\Magento2\Model\Payment\OnPayPaymentMethod
@@ -34,76 +51,99 @@ use Magento\Framework\Validator\Exception as ValidatorException;
  * @license   http://opensource.org/licenses/gpl-3.0 GNU General Public License, version 3 (GPLv3)
  * @link      https://intelligodenmark.dk
  */
-class OnPayPaymentMethod extends \Magento\Payment\Model\Method\AbstractMethod
+class OnPayPaymentMethod extends AbstractMethod
 {
     const CODE = 'onpaypaymentmethod';
 
+    /**
+     * @var string
+     */
     protected $_code = self::CODE;
 
     /**
-     * Availability option
-     *
      * @var bool
      */
     protected $_isGateway = true;
 
     /**
-     * Payment Method feature
-     *
      * @var bool
      */
     protected $_canCapture = true;
 
     /**
-     * Availability option
-     *
+     * @var bool
+     */
+    protected $_canCapturePartial = true;
+
+    /**
      * @var bool
      */
     protected $_canRefund = true;
 
+    /**
+     * @var bool
+     */
+    protected $_canVoid = true;
+
+    /**
+     * @var bool
+     */
+    protected $_canRefundInvoicePartial = true;
+
+    /**
+     * @var bool
+     */
     protected $_isInitializeNeeded = true;
 
-    protected $helper;
+    /**
+     * @var Config
+     */
+    protected Config $helper;
 
-    protected $transactionBuilder;
+    /**
+     * @var Currency
+     */
+    protected Currency $currencyHelper;
 
-    protected $invoiceRepository;
+    /**
+     * @var BuilderInterface
+     */
+    protected BuilderInterface $transactionBuilder;
 
-    protected $_transaction;
+    /**
+     * @var OnPayAPI
+     */
+    protected OnPayAPI $onPayApi;
 
     /**
      * Construct Function
      *
-     * @param \Magento\Framework\Model\Context                                $context                Concrete implementation for
-     * @param \Magento\Framework\Registry                                     $registry               Used to manage values in registry
-     * @param \Magento\Framework\Api\ExtensionAttributesFactory               $extensionFactory       Factory class for instantiation of extension attributes objects.
-     * @param \Magento\Framework\Api\AttributeValueFactory                    $customAttributeFactory class AttributeValueFactory
-     * @param \Magento\Payment\Helper\Data                                    $paymentData            Render payment information block
-     * @param \Magento\Framework\App\Config\ScopeConfigInterface              $scopeConfig            ScopeConfig
-     * @param \Magento\Payment\Model\Method\Logger                            $logger                 Logger for payment related information (request, response, etc.) which is used for debug
-     * @param \Magento\Framework\Model\ResourceModel\AbstractResource|null    $resource               Abstract resource model
-     * @param \Magento\Framework\Data\Collection\AbstractDb|null              $resourceCollection     Base items collection class
-     * @param \OnPay\OnPay\Helper\Config                                      $helper                 Onpay Helper
-     * @param \Magento\Sales\Model\Order\Payment\Transaction\BuilderInterface $transactionBuilder     Order payment information
-     * @param InvoiceRepositoryInterface                                      $invoiceRepository      Invoice repository interface.
-     * @param \Magento\Framework\DB\Transaction                               $transaction            connection by name
-     * @param array                                                           $data                   Array
+     * @param Context $context Concrete implementation for
+     * @param Registry $registry Used to manage values in registry
+     * @param ExtensionAttributesFactory $extensionFactory Factory class for instantiation of extension attributes objects.
+     * @param AttributeValueFactory $customAttributeFactory class AttributeValueFactory
+     * @param Data $paymentData Render payment information block
+     * @param ScopeConfigInterface $scopeConfig ScopeConfig
+     * @param Logger $logger Logger for payment related information (request, response, etc.) which is used for debug
+     * @param AbstractResource|null $resource Abstract resource model
+     * @param AbstractDb|null $resourceCollection Base items collection class
+     * @param Config $helper Onpay Helper
+     * @param BuilderInterface $transactionBuilder Order payment information
+     * @param array $data Array
      */
     public function __construct(
-        \Magento\Framework\Model\Context $context,
-        \Magento\Framework\Registry $registry,
-        \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory,
-        \Magento\Framework\Api\AttributeValueFactory $customAttributeFactory,
-        \Magento\Payment\Helper\Data $paymentData,
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-        \Magento\Payment\Model\Method\Logger $logger,
-        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
-        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
-        \OnPay\OnPay\Helper\Config $helper,
-        \Magento\Sales\Model\Order\Payment\Transaction\BuilderInterface $transactionBuilder,
-        InvoiceRepositoryInterface $invoiceRepository,
-        \Magento\Framework\DB\Transaction $transaction,
-        array $data = []
+        Context                    $context,
+        Registry                   $registry,
+        ExtensionAttributesFactory $extensionFactory,
+        AttributeValueFactory      $customAttributeFactory,
+        Data                       $paymentData,
+        ScopeConfigInterface       $scopeConfig,
+        Logger                     $logger,
+        AbstractResource           $resource = null,
+        AbstractDb                 $resourceCollection = null,
+        Config                     $helper,
+        BuilderInterface           $transactionBuilder,
+        array                      $data = []
     ) {
         parent::__construct(
             $context,
@@ -118,154 +158,136 @@ class OnPayPaymentMethod extends \Magento\Payment\Model\Method\AbstractMethod
             $data
         );
         $this->helper = $helper;
+        $this->currencyHelper = new Currency();
         $this->transactionBuilder = $transactionBuilder;
-        $this->invoiceRepository = $invoiceRepository;
-        $this->_transaction = $transaction;
+
+        $tokenStorage = new OnPayTokenStorage($helper);
+        $this->onPayApi = new OnPayAPI($tokenStorage, [
+            'client_id' => $helper->getWebsiteUrl(),
+            'redirect_uri' => $helper->getAuthorizeUrl(),
+            'gateway_id' => $helper->getGatewayId(),
+        ]);
     }
 
     /**
      * Capture Payment
      *
-     * @param \Magento\Payment\Model\InfoInterface $payment Payment interface @api
-     * @param [type]                               $amount  Payment Amount
+     * @param InfoInterface $payment Payment interface @api
+     * @param float                               $amount  Payment Amount
      *
      * @return void
      */
-    public function capture(\Magento\Payment\Model\InfoInterface $payment, $amount)
+    public function capture(InfoInterface $payment, $amount)
     {
-        $tranactionId = $payment->getLastTransId();
-
+        $transactionNumber = $payment->getLastTransId();
         $order = $payment->getOrder();
 
-        if ($tranactionId) {
-
-            $response = $this->helper->connectToOnPayTransaction('capture', $tranactionId, 'POST', $amount);
+        if ($transactionNumber) {
+            $minorAmount = $this->currencyHelper->majorToMinor($order->getGrandTotal(), $order->getOrderCurrencyCode(), '.');
+            $captureTransaction = $this->onPayApi->transaction()->captureTransaction($transactionNumber, $minorAmount);
 
             try {
-                if (isset($response['data'])) {
+                $captureTransactionId = $captureTransaction->uuid;
+                if ($captureTransactionId) {
+                    $payment->setTransactionId($captureTransactionId)
+                        ->setPreparedMessage(__('OnPay - Transaction has been successful.'))
+                        ->setShouldCloseParentTransaction(true)
+                        ->setIsTransactionClosed(1)
+                    ;
 
-                    $data = $response['data'];
+                    $payment->setCcExpYear($captureTransaction->expiryYear);
+                    $payment->setCcExpMonth($captureTransaction->expiryMonth);
 
-                    $captureTranactionId = '';
-                    if (isset($data['history'])) {
-                        $history = $data['history'];
-                        foreach ($history as $his) {
-                            if ($his['action'] == 'capture') {
-                                $captureTranactionId = $his['uuid'];
-                            }
-                        }
-                    }
+                    $transaction = $this->transactionBuilder->setPayment($payment)
+                        ->setOrder($order)
+                        ->setTransactionId($captureTransactionId)
+                        ->setFailSafe(false)
+                        ->build(Transaction::TYPE_CAPTURE);
 
-                    if ($captureTranactionId) {
-
-                        $payment->setTransactionId($captureTranactionId)
-                            ->setPreparedMessage(__('OnPay - Transaction has been successful.'))
-                            ->setShouldCloseParentTransaction(true)
-                            ->setIsTransactionClosed(1)
-                            ->setAdditionalInformation($data);
-
-                        $this->_updatePaymentDetails($payment, $data);
-
-                        $transaction = $this->transactionBuilder->setPayment($payment)
-                            ->setOrder($order)
-                            ->setTransactionId($captureTranactionId)
-                            ->setAdditionalInformation([Transaction::RAW_DETAILS => (array) $payment->getAdditionalInformation()])
-                            ->setFailSafe(false)
-                            ->build(Transaction::TYPE_CAPTURE);
-
-                        $transaction->save();
-                    }
+                    $transaction->save();
                 }
-            } catch (\ValidatorException $ex) {
-                throw new \ValidatorException($ex->getMessage());
+            } catch (ValidatorException $ex) {
+                throw new ValidatorException($ex->getMessage());
             }
         } else {
-            throw new \ValidatorException('Payment is not authorized.');
+            throw new ValidatorException('Payment is not authorized.');
         }
         return $this;
     }
 
     /**
-     * Update Payment Details
-     *
-     * @param [type] $payment Payment
-     * @param [type] $data    Payment Data
-     *
-     * @return void
-     */
-    private function _updatePaymentDetails($payment, $data)
-    {
-        if (!empty($data['card_type'])) {
-            $payment->setCcExpYear($data['expiry_year']);
-            $payment->setCcExpMonth($data['expiry_month']);
-        }
-
-        $payment->save();
-    }
-
-    /**
      * Refund Function
      *
-     * @param \Magento\Payment\Model\InfoInterface $payment Payment Interface
+     * @param InfoInterface $payment Payment Interface
      * @param [type]                               $amount  Amount
      *
      * @return void
      */
-    public function refund(\Magento\Payment\Model\InfoInterface $payment, $amount)
+    public function refund(InfoInterface $payment, $amount)
     {
-        $tranactionId = $this->_getTransactionNumber($payment->getAdditionalInformation());
+        $transactionNumber = $payment->getLastTransId();
+        $order = $payment->getOrder();
 
         $message = "OnPay - The invoice can't be refund at this time. Please try again later or make an offline refund.";
 
-        if ($tranactionId) {
+        if ($transactionNumber) {
+            $minorAmount = $this->currencyHelper->majorToMinor($order->getGrandTotal(), $order->getOrderCurrencyCode(), '.');
+            $refundTransaction = $this->onPayApi->transaction()->refundTransaction($transactionNumber, $minorAmount);
 
-            $response = $this->helper->connectToOnPayTransaction('refund', $tranactionId, 'POST', $amount);
+            $refundTransactionId = $refundTransaction->uuid;
+            if ($refundTransactionId) {
+                $payment->setTransactionId($refundTransactionId)
+                    ->setShouldCloseParentTransaction(true)
+                    ->setIsTransactionClosed(1);
 
-            if (isset($response['data'])) {
-
-                $data = $response['data'];
-
-                $refundTranactionId = '';
-                if (isset($data['history'])) {
-                    $history = $data['history'];
-                    foreach ($history as $his) {
-                        if ($his['action'] == 'refund') {
-                            $refundTranactionId = $his['uuid'];
-                        }
-                    }
-                }
-
-                if ($refundTranactionId) {
-                    $payment->setTransactionId($refundTranactionId)
-                        ->setShouldCloseParentTransaction(true)
-                        ->setIsTransactionClosed(1)
-                        ->setAdditionalInformation($data);
-                }
-
-                return $this;
-            } elseif (isset($response['errors']) && count($response['errors']) && isset($response['errors'][0]['message'])) {
-                $message = $response['errors'][0]['message'];
+                return;
             }
         }
 
-        throw new \ValidatorException($message);
+        throw new ValidatorException($message);
     }
 
     /**
-     * Get Transaction Number
+     * Cancel Function
      *
-     * @param [type] $data Data
+     * @param InfoInterface $payment Payment Interface
      *
      * @return void
      */
-    private function _getTransactionNumber($data)
+    public function cancel(InfoInterface $payment)
     {
-        $transactionNumber = '';
+        $message = "OnPay - The invoice can't be cancelled at this time. Please try again later or make an offline cancel.";
+        $this->cancelTransaction($payment, $message);
+    }
 
-        if (count($data) && isset($data['transaction_number'])) {
-            $transactionNumber = $data['transaction_number'];
+    /**
+     * Vpod Function
+     *
+     * @param InfoInterface $payment Payment Interface
+     *
+     * @return void
+     */
+    public function void(InfoInterface $payment)
+    {
+        $message = "OnPay - The invoice can't be voided at this time. Please try again later or make an offline cancel.";
+        $this->cancelTransaction($payment, $message);
+    }
+
+    private function cancelTransaction(InfoInterface $payment, string $message) {
+        $transactionNumber = $payment->getLastTransId();
+        if ($transactionNumber) {
+            $refundTransaction = $this->onPayApi->transaction()->cancelTransaction($transactionNumber);
+
+            $refundTransactionId = $refundTransaction->uuid;
+            if ($refundTransactionId) {
+                $payment->setTransactionId($refundTransactionId)
+                    ->setShouldCloseParentTransaction(true)
+                    ->setIsTransactionClosed(1);
+
+                return;
+            }
         }
 
-        return $transactionNumber;
+        throw new ValidatorException($message);
     }
 }

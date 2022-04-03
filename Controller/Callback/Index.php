@@ -83,7 +83,5 @@ class Index extends \Magento\Framework\App\Action\Action
             $logger->addWriter($writer);
             $logger->info('callback-decline');
         }
-
-        return true;
     }
 }

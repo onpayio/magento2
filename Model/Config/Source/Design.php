@@ -20,6 +20,9 @@
 
 namespace OnPay\Magento2\Model\Config\Source;
 
+use Magento\Framework\Option\ArrayInterface;
+use OnPay\Magento2\Model\ManageOnPay;
+
 /**
  * Design OnPay\Magento2\Model\Config\Source\Design
  *
@@ -29,31 +32,22 @@ namespace OnPay\Magento2\Model\Config\Source;
  * @link      https://intelligodenmark.dk
  */
 
-class Design implements \Magento\Framework\Option\ArrayInterface
+class Design implements ArrayInterface
 {
     /**
-     * Protected variable
-     *
-     * @var \Magento\Framework\App\Config\ScopeConfigInterface
+     * @var ManageOnPay
      */
-    protected $scopeConfig;
-
-    /**
-     * @var \Magento\Framework\HTTP\Client\Curl
-     */
-    protected $_curl;
+    protected $manageOnPay;
 
     /**
      * __construct function
      *
-     * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig Scope Config
+     * @param ManageOnPay $manageOnPay
      */
     public function __construct(
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-        \Magento\Framework\HTTP\Client\Curl $curl
+        ManageOnPay $manageOnPay
     ) {
-        $this->scopeConfig = $scopeConfig;
-        $this->_curl = $curl;
+        $this->manageOnPay = $manageOnPay;
     }
 
     /**
@@ -63,27 +57,11 @@ class Design implements \Magento\Framework\Option\ArrayInterface
      */
     public function toOptionArray()
     {
-        $storeScope = \Magento\Store\Model\ScopeInterface::SCOPE_STORE;
-
-        $apiKey =  $this->scopeConfig->getValue('payment/onpaypaymentmethod/api_key', $storeScope);
-
         try {
-            $url = "https://api.onpay.io/v1/gateway/window/v3/design/";
-
-            $headers = [
-                "Authorization" => "Bearer {$apiKey}"
-            ];
-
-            $this->_curl->setHeaders($headers);
-            $this->_curl->get($url);
-
-            $response = $this->_curl->getBody();
-            $response = json_decode($response, true);
-
-            foreach ($response['data'] as $name) {
+            foreach ($this->manageOnPay->getPaymentWindowDesigns() as $design) {
                 $options[] = [
-                    'value' => $name['name'],
-                    'label' => $name['name']
+                    'value' => $design->name,
+                    'label' => $design->name
                 ];
             }
             return $options;

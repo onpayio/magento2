@@ -7,6 +7,23 @@
 				<model>OnPay\Magento2\Model\Payment\OnPayPaymentMethod</model>
 				<order_status>pending</order_status>
 				<payment_action>authorize</payment_action>
+				<title>OnPay - Select Payment Method</title>
+				<allowspecific>0</allowspecific>
+				<group>offline</group>
+				<payment_window_language>en</payment_window_language>
+				<test_mode>1</test_mode>
+				<type>transaction</type>
+				<method></method>
+				<delivery_disabled>no-reason</delivery_disabled>
+				<secure>forced</secure>
+				<design>window1</design>
+				<expiration>86400</expiration>
+			</onpaypaymentmethod>
+			<onpay_card>
+				<active>0</active>
+				<model>OnPay\Magento2\Model\Payment\OnPayPaymentMethod</model>
+				<order_status>pending</order_status>
+				<payment_action>authorize</payment_action>
 				<title>OnPay - Secure card payment</title>
 				<allowspecific>0</allowspecific>
 				<group>offline</group>
@@ -18,8 +35,24 @@
 				<secure>forced</secure>
 				<design>window1</design>
 				<expiration>86400</expiration>
-				<minor_units>100</minor_units>
-			</onpaypaymentmethod>
+			</onpay_card>
+			<onpay_mobilepay>
+				<active>0</active>
+				<model>OnPay\Magento2\Model\Payment\OnPayPaymentMethod</model>
+				<order_status>pending</order_status>
+				<payment_action>authorize</payment_action>
+				<title>OnPay - Mobilepay</title>
+				<allowspecific>0</allowspecific>
+				<group>offline</group>
+				<payment_window_language>en</payment_window_language>
+				<test_mode>1</test_mode>
+				<type>transaction</type>
+				<method></method>
+				<delivery_disabled>no-reason</delivery_disabled>
+				<secure>forced</secure>
+				<design>window1</design>
+				<expiration>86400</expiration>
+			</onpay_mobilepay>
 		</payment>
 	</default>
 </config>

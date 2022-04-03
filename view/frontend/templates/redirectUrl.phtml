@@ -1,29 +1,20 @@
 <?php
-
 /**
  * @var \OnPay\Magento2\Block\RedirectUrl $block
  */
-$orderId = $block->getOrderCookie();
-
-$params = $block->getPostParams($orderId, 'N');
 ?>
 
-<form id="onpay_window_form" method="post" action="https://onpay.io/window/v3/" accept-charset="UTF-8">
-
-    <?php
-    if (count($params)) {
-        foreach ($params as $key => $value) {
-            ?>
+<?php if ($block->isValid()): ?>
+    <form id="onpay_window_form" method="post" action="<?= $block->getActionUrl(); ?>" accept-charset="UTF-8">
+        <?php foreach ($block->getFormFields() as $key => $value): ?>
             <input type="hidden" name="<?= $block->escapeHtml($key); ?>" value="<?= $block->escapeHtml($value); ?>">
+        <?php endforeach; ?>
 
-            <?php
-        }
-    }
-    ?>
-
-    <input type="submit" style="display:none;" value="Start Payment">
-
-</form>
+        <input type="submit" style="display:none;" value="Make Payment">
+    </form>
+<?php else: ?>
+    <h1>Payment window is not configured correct</h1>
+<?php endif; ?>
 
 <script type="text/javascript">
     require([
