@@ -1,10 +1,10 @@
 {
-    "name": "onpay/magento2",
+    "name": "onpayio/module-magento2-payment",
     "version": "1.0.0",
     "description": "OnPay Payment Method",
     "license": "MIT",
     "keywords": [
-        "magneto2",
+        "magento2",
         "payment",
         "onpay"
     ],
