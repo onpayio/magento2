@@ -11,7 +11,7 @@ define(
         rendererList.push(
             {
                 type: 'onpaypaymentmethod',
-                component: 'OnPay_OnPay/js/view/payment/method-renderer/onpaypaymentmethod-method'
+                component: 'OnPay_Magento2/js/view/payment/method-renderer/onpaypaymentmethod-method'
             }
         );
         return Component.extend({});

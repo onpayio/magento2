@@ -16,10 +16,10 @@
  * Version: 1.0.0
  * Author URI: https://intelligodenmark.dk
  */
-namespace OnPay\OnPay\Observer;
+namespace OnPay\Magento2\Observer;
 
-use OnPay\OnPay\Model\Payment\OnPayPaymentMethod;
-use OnPay\OnPay\Block\RedirectUrl;
+use OnPay\Magento2\Model\Payment\OnPayPaymentMethod;
+use OnPay\Magento2\Block\RedirectUrl;
 
 class SalesOrderPlaceAfter implements \Magento\Framework\Event\ObserverInterface
 {

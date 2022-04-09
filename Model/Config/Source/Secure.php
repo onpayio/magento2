@@ -18,10 +18,10 @@
  * Author URI: https://intelligodenmark.dk
  */
 
-namespace OnPay\OnPay\Model\Config\Source;
+namespace OnPay\Magento2\Model\Config\Source;
 
 /**
- * Secure OnPay\OnPay\Model\Config\Source\Secure
+ * Secure OnPay\Magento2\Model\Config\Source\Secure
  *
  * @author    Julian F. Christmas <jc@intelligodenmark.dk>
  * @copyright 2022 Team.blue Denmark A/S

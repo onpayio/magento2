@@ -4,7 +4,7 @@
 		<payment>
 			<onpaypaymentmethod>
 				<active>0</active>
-				<model>OnPay\OnPay\Model\Payment\OnPayPaymentMethod</model>
+				<model>OnPay\Magento2\Model\Payment\OnPayPaymentMethod</model>
 				<order_status>pending</order_status>
 				<payment_action>authorize</payment_action>
 				<title>OnPay - Secure card payment</title>

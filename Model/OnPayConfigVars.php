@@ -18,9 +18,10 @@
  * Author URI: https://intelligodenmark.dk
  */
 
-namespace OnPay\OnPay\Model;
+namespace OnPay\Magento2\Model;
 
 use Magento\Checkout\Model\ConfigProviderInterface;
+use OnPay\Magento2\Helper\Config;
 
 /**
  * @author    Julian F. Christmas <jc@intelligodenmark.dk>
@@ -33,7 +34,7 @@ class OnPayConfigVars implements ConfigProviderInterface
     /**
      * Helper variable
      *
-     * @var \OnPay\OnPay\Helper\Config
+     * @var Config
      */
     public $helper;
 
@@ -47,11 +48,11 @@ class OnPayConfigVars implements ConfigProviderInterface
     /**
      * __construct function
      *
-     * @param \OnPay\OnPay\Helper\Config                 $helper       Config from helper
+     * @param Config                 $helper       Config from helper
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager store Manager
      */
     public function __construct(
-        \OnPay\OnPay\Helper\Config $helper,
+        Config $helper,
         \Magento\Store\Model\StoreManagerInterface $storeManager
     ) {
         $this->helper = $helper;

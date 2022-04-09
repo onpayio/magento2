@@ -2,6 +2,6 @@
 
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
     <event name="sales_order_place_after">
-        <observer name="onpay_gateway_redirect" instance="OnPay\OnPay\Observer\SalesOrderPlaceAfter" />
+        <observer name="onpay_gateway_redirect" instance="OnPay\Magento2\Observer\SalesOrderPlaceAfter" />
     </event>
 </config>

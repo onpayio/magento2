@@ -18,10 +18,10 @@
  * Author URI: https://intelligodenmark.dk
  */
 
-namespace OnPay\OnPay\Model\Config\Source;
+namespace OnPay\Magento2\Model\Config\Source;
 
 /**
- * Methods OnPay\OnPay\Model\Config\Source\Methods
+ * Methods OnPay\Magento2\Model\Config\Source\Methods
  *
  * @author    Julian F. Christmas <jc@intelligodenmark.dk>
  * @copyright 2022 Team.blue Denmark A/S

@@ -18,7 +18,7 @@
  * Author URI: https://intelligodenmark.dk
  */
 
-namespace OnPay\OnPay\Block\System\Config;
+namespace OnPay\Magento2\Block\System\Config;
 
 use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Backend\Block\Template\Context;
@@ -26,7 +26,7 @@ use Magento\Framework\Data\Form\Element\AbstractElement;
 
 class Button extends Field
 {
-    protected $_template = 'OnPay_OnPay::system/config/button.phtml';
+    protected $_template = 'OnPay_Magento2::system/config/button.phtml';
 
     public function render(AbstractElement $element)
     {

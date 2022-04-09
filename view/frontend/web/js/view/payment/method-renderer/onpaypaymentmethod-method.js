@@ -9,7 +9,7 @@ define(
             {
                 defaults: {
                     redirectAfterPlaceOrder: false,
-                    template: 'OnPay_OnPay/payment/onpaypaymentmethod'
+                    template: 'OnPay_Magento2/payment/onpaypaymentmethod'
                 },
                 getMailingAddress: function () {
                     return window.checkoutConfig.payment.checkmo.mailingAddress;

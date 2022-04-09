@@ -22,4 +22,4 @@
 
 use Magento\Framework\Component\ComponentRegistrar;
 
-ComponentRegistrar::register(ComponentRegistrar::MODULE, 'OnPay_OnPay', __DIR__);
+ComponentRegistrar::register(ComponentRegistrar::MODULE, 'OnPay_Magento2', __DIR__);

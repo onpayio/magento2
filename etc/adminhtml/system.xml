@@ -5,10 +5,10 @@
 			<group id="onpaypaymentmethod" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
 				<label>OnPay</label>
 				<field id="button_id" translate="label" type="button" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-    <label></label>
-    <frontend_model>OnPay\OnPay\Block\System\Config\Button</frontend_model>
-</field>
-				
+					<label>1 Click Setup</label>
+					<frontend_model>OnPay\Magento2\Block\System\Config\Button</frontend_model>
+				</field>
+
 				<field id="active" type="select" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
 					<label>Enabled</label>
 					<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
@@ -38,26 +38,26 @@
 				</field>
 				<field id="payment_window_language" type="select" sortOrder="80" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
 					<label>Payment window language</label>
-					<source_model>OnPay\OnPay\Model\Config\Source\PaymentWindowLanguage</source_model>
+					<source_model>OnPay\Magento2\Model\Config\Source\PaymentWindowLanguage</source_model>
 				</field>
 				<field id="type" type="select" sortOrder="81" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
 					<label>Type</label>
-					<source_model>OnPay\OnPay\Model\Config\Source\Type</source_model>
+					<source_model>OnPay\Magento2\Model\Config\Source\Type</source_model>
 				</field>
 				<field id="delivery_disabled" type="select" sortOrder="83" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
 					<label>Delivery Disabled</label>
-					<source_model>OnPay\OnPay\Model\Config\Source\DeliveryDisabled</source_model>
+					<source_model>OnPay\Magento2\Model\Config\Source\DeliveryDisabled</source_model>
 					<depends>
 						<field id="method">mobilepay_checkout</field>
 					</depends>
 				</field>
 				<field id="secure" type="select" sortOrder="84" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
 					<label>3d Secure</label>
-					<source_model>OnPay\OnPay\Model\Config\Source\Secure</source_model>
+					<source_model>OnPay\Magento2\Model\Config\Source\Secure</source_model>
 				</field>
 				<field id="design" type="select" sortOrder="85" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
 					<label>Design</label>
-					<source_model>OnPay\OnPay\Model\Config\Source\Design</source_model>
+					<source_model>OnPay\Magento2\Model\Config\Source\Design</source_model>
 				</field>
 				<field id="minor_units" type="text" sortOrder="86" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
 					<label>Minor Units</label>

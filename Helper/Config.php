@@ -20,12 +20,12 @@
 
 declare(strict_types=1);
 
-namespace OnPay\OnPay\Helper;
+namespace OnPay\Magento2\Helper;
 
 use Magento\Framework\App\Helper\AbstractHelper;
 
 /**
- * Config  OnPay\OnPay\Helper\Config
+ * Config  OnPay\Magento2\Helper\Config
  *
  * @author    Julian F. Christmas <jc@intelligodenmark.dk>
  * @copyright 2022 Team.blue Denmark A/S

@@ -2,7 +2,7 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd">
     <router id="admin">
         <route id="onpay" frontName="onpay">
-            <module name="OnPay_OnPay" before="Magento_Backend" />
+            <module name="OnPay_Magento2" before="Magento_Backend" />
         </route>
     </router>
 </config>

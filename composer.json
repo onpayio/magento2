@@ -25,7 +25,7 @@
             "registration.php"
         ],
         "psr-4": {
-            "OnPay\\OnPay\\": ""
+            "OnPay\\Magento2\\": ""
         }
     }
 }

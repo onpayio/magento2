@@ -20,12 +20,12 @@
  * Author URI: https://intelligodenmark.dk
  */
 
-namespace OnPay\OnPay\Block;
+namespace OnPay\Magento2\Block;
 
-use OnPay\OnPay\Helper\Config;
+use OnPay\Magento2\Helper\Config;
 
 /**
- * RedirectUrl OnPay\OnPay\Block\RedirectUrl
+ * RedirectUrl OnPay\Magento2\Block\RedirectUrl
  *
  * @author    Julian F. Christmas <jc@intelligodenmark.dk>
  * @copyright 2022 Team.blue Denmark A/S
@@ -155,7 +155,7 @@ class RedirectUrl extends \Magento\Framework\View\Element\Template
             Config::EXPIRATION => $this->helper->getExpiration()
         ];
 
-        
+
 
         // Delivery Disabled
         if ($this->helper->getDeliveryDisabled()) {

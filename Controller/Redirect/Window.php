@@ -16,7 +16,7 @@
  * Version: 1.0.0
  * Author URI: https://intelligodenmark.dk
  */
-namespace OnPay\OnPay\Controller\Redirect;
+namespace OnPay\Magento2\Controller\Redirect;
 
 class Window extends \Magento\Framework\App\Action\Action
 {

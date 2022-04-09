@@ -18,7 +18,7 @@
  * Author URI: https://intelligodenmark.dk
  */
 
-namespace OnPay\OnPay\Model;
+namespace OnPay\Magento2\Model;
 
 use Magento\Sales\Model\Order\Payment\Transaction;
 

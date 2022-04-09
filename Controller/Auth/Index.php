@@ -18,7 +18,7 @@
  * Author URI: https://intelligodenmark.dk
  */
 
-namespace OnPay\OnPay\Controller\Auth;
+namespace OnPay\Magento2\Controller\Auth;
 
 class Index extends \Magento\Framework\App\Action\Action
 {

@@ -20,14 +20,14 @@
 
 declare(strict_types=1);
 
-namespace OnPay\OnPay\Model\Payment;
+namespace OnPay\Magento2\Model\Payment;
 
 use Magento\Sales\Model\Order\Payment\Transaction;
 use Magento\Sales\Api\InvoiceRepositoryInterface;
 use Magento\Framework\Validator\Exception as ValidatorException;
 
 /**
- * OnPayPaymentMethod OnPay\OnPay\Model\Payment\OnPayPaymentMethod
+ * OnPayPaymentMethod OnPay\Magento2\Model\Payment\OnPayPaymentMethod
  *
  * @author    Julian F. Christmas <jc@intelligodenmark.dk>
  * @copyright 2022 Team.blue Denmark A/S

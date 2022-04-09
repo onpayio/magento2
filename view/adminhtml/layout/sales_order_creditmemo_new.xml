@@ -2,7 +2,7 @@
 <layout xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/layout_generic.xsd">
     <referenceBlock name="adjustments">
         <action method="setTemplate">
-<argument name="template" xsi:type="string">OnPay_OnPay::order/creditmemo/create/totals/adjustments.phtml</argument>
+<argument name="template" xsi:type="string">OnPay_Magento2::order/creditmemo/create/totals/adjustments.phtml</argument>
         </action>
     </referenceBlock>
 </layout>

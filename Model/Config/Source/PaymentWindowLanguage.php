@@ -18,7 +18,7 @@
  * Author URI: https://intelligodenmark.dk
  */
 
-namespace OnPay\OnPay\Model\Config\Source;
+namespace OnPay\Magento2\Model\Config\Source;
 
 /**
  * @author    Julian F. Christmas <jc@intelligodenmark.dk>

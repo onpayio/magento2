@@ -16,7 +16,7 @@
  * Version: 1.0.0
  * Author URI: https://intelligodenmark.dk
  */
-namespace OnPay\OnPay\Controller\Decline;
+namespace OnPay\Magento2\Controller\Decline;
 
 class Index extends \Magento\Framework\App\Action\Action
 {
@@ -28,7 +28,7 @@ class Index extends \Magento\Framework\App\Action\Action
         \Magento\Framework\App\Action\Context $context,
         \Magento\Framework\View\Result\PageFactory $pageFactory,
         \Magento\Framework\Controller\ResultFactory $resultFactory,
-        \OnPay\OnPay\Model\ManageOnPay $manageOnPay
+        \OnPay\Magento2\Model\ManageOnPay $manageOnPay
     ) {
         $this->_pageFactory = $pageFactory;
         $this->manageOnPay = $manageOnPay;

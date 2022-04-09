@@ -18,10 +18,10 @@
  * Author URI: https://intelligodenmark.dk
  */
 
-namespace OnPay\OnPay\Controller\Callback;
+namespace OnPay\Magento2\Controller\Callback;
 
 /**
- * Index  OnPay\OnPay\Controller\Callback\Index
+ * Index  OnPay\Magento2\Controller\Callback\Index
  *
  * @author    Julian F. Christmas <jc@intelligodenmark.dk>
  * @copyright 2022 Team.blue Denmark A/S
@@ -40,13 +40,13 @@ class Index extends \Magento\Framework\App\Action\Action
      * @param \Magento\Framework\App\Action\Context       $context       Constructor modification point for Magento\Framework\App\Helper.
      * @param \Magento\Framework\View\Result\PageFactory  $pageFactory   Page Factory
      * @param \Magento\Framework\Controller\ResultFactory $resultFactory Result Factory
-     * @param \OnPay\OnPay\Model\ManageOnPay              $manageOnPay   OnPay Class
+     * @param \OnPay\Magento2\Model\ManageOnPay              $manageOnPay   OnPay Class
      */
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \Magento\Framework\View\Result\PageFactory $pageFactory,
         \Magento\Framework\Controller\ResultFactory $resultFactory,
-        \OnPay\OnPay\Model\ManageOnPay $manageOnPay
+        \OnPay\Magento2\Model\ManageOnPay $manageOnPay
     ) {
         $this->_pageFactory = $pageFactory;
         $this->manageOnPay = $manageOnPay;

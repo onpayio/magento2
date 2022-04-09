@@ -16,7 +16,7 @@
  * Version: 1.0.0
  * Author URI: https://intelligodenmark.dk
  */
-namespace OnPay\OnPay\Controller\Accept;
+namespace OnPay\Magento2\Controller\Accept;
 
 use Magento\Framework\App\Action\Context;
 
@@ -32,7 +32,7 @@ class Index extends \Magento\Framework\App\Action\Action
         Context $context,
         \Magento\Framework\View\Result\PageFactory $pageFactory,
         \Magento\Framework\Controller\ResultFactory $resultFactory,
-        \OnPay\OnPay\Model\ManageOnPay $manageOnPay
+        \OnPay\Magento2\Model\ManageOnPay $manageOnPay
     ) {
         parent::__construct($context);
         $this->context = $context;
