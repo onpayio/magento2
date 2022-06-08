@@ -12,15 +12,20 @@
 
         <input type="submit" style="display:none;" value="Make Payment">
     </form>
+    <script type="text/javascript">
+        require([
+            'jquery'
+        ], function($) {
+            'use strict';
+            $('#onpay_window_form').submit();
+        });
+    </script>
+<?php elseif (null === $block->getOrderId()): ?>
+    <h3>Could not get OrderID</h3>
+<?php elseif ($block->isAlreadyPaid()): ?>
+    <h3>This order has already been processed</h3>
+    <p>Order ID: <?=$block->getOrderId()?></p>
 <?php else: ?>
-    <h1>Payment window is not configured correct</h1>
+    <h3>Payment window is not configured correct</h3>
 <?php endif; ?>
 
-<script type="text/javascript">
-    require([
-        'jquery'
-    ], function($) {
-        'use strict';
-        $('#onpay_window_form').submit();
-    });
-</script>

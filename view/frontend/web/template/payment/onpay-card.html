@@ -10,7 +10,16 @@
                name="payment[method]"
                class="radio"
                data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()"/>
+        <!-- ko ifnot: getLogo() -->
         <label data-bind="attr: {'for': getCode()}" class="label"><span data-bind="text: getTitle()"></span></label>
+        <!-- /ko -->
+        <!-- ko if: getLogo() -->
+            <label data-bind="attr: {'for': getCode()}" class="label"><img class="payment-icon" data-bind="attr: {'src': require.toUrl(getLogo()) , 'alt': getTitle()}"/>
+                <!-- ko if: displayTitleLogo() -->
+                <span data-bind="text: getTitle()"></span>
+                <!-- /ko -->
+            </label>
+        <!-- /ko -->
     </div>
     <div class="payment-method-content">
         <!-- ko foreach: getRegion('messages') -->
@@ -44,4 +53,3 @@
         </div>
     </div>
 </div>
-        

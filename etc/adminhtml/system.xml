@@ -1,86 +1,244 @@
 <?xml version="1.0" ?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
 	<system>
-		<section id="payment" sortOrder="1000" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-			<group id="onpaypaymentmethod" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-				<label>OnPay</label>
-				<field id="button_id" translate="label" type="button" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-					<label>1 Click Setup</label>
-					<frontend_model>OnPay\Magento2\Block\System\Config\Button</frontend_model>
-				</field>
+		<section id="payment">
+			<group id="onpay_payment_methods" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label comment">
+                <label><![CDATA[<div class="onpay-payment-logo"></div><div class="onpay-payment-byline">OnPay Payment Gateway<br/><p>Accept CreditCard, PayPal and MobilePay through OnPay Gateway</p></div>]]></label>
+                <fieldset_css>complex onpay-section</fieldset_css>
+                <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Payment</frontend_model>
+                <field id="button_id" translate="label" type="button" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>1 Click Setup</label>
+                    <frontend_model>OnPay\Magento2\Block\System\Config\Button</frontend_model>
+                </field>
 
-				<field id="active" type="select" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-					<label>Enabled</label>
-					<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-				</field>
-				<field id="test_mode" type="select" sortOrder="20" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-					<label>Test Mode</label>
-					<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-				</field>
-				<field id="title" type="text" sortOrder="30" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-					<label>Title</label>
-				</field>
-				<field id="order_status" type="select" sortOrder="40" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-					<label>New Order Status</label>
-					<source_model>Magento\Sales\Model\Config\Source\Order\Status\Newprocessing</source_model>
-				</field>
-				<field id="gateway_id" type="text" sortOrder="50" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-					<label>Gateway ID</label>
-					<validate>required-entry</validate>
-					<frontend_model>OnPay\Magento2\Block\System\Config\Readonly</frontend_model>
-				</field>
-				<field id="window_secret" type="text" sortOrder="60" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-					<label>Window secret</label>
-					<validate>required-entry</validate>
-					<frontend_model>OnPay\Magento2\Block\System\Config\Readonly</frontend_model>
-				</field>
-				<field id="refresh_token" type="text" sortOrder="70" showInWebsite="0" showInStore="0" showInDefault="0" translate="label">
-					<label>Refresh Token</label>
-				</field>
-				<field id="payment_window_language" type="select" sortOrder="80" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-					<label>Payment window language</label>
-					<source_model>OnPay\Magento2\Model\Config\Source\PaymentWindowLanguage</source_model>
-				</field>
-				<field id="type" type="select" sortOrder="81" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-					<label>Type</label>
-					<source_model>OnPay\Magento2\Model\Config\Source\Type</source_model>
-				</field>
-				<field id="delivery_disabled" type="select" sortOrder="83" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-					<label>Delivery Disabled</label>
-					<source_model>OnPay\Magento2\Model\Config\Source\DeliveryDisabled</source_model>
-					<depends>
-						<field id="method">mobilepay_checkout</field>
-					</depends>
-				</field>
-				<field id="secure" type="select" sortOrder="84" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-					<label>3d Secure</label>
-					<source_model>OnPay\Magento2\Model\Config\Source\Secure</source_model>
-				</field>
-				<field id="design" type="select" sortOrder="85" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-					<label>Design</label>
-					<source_model>OnPay\Magento2\Model\Config\Source\Design</source_model>
-				</field>
-				<field id="expiration" type="text" sortOrder="86" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-					<label>Expiration</label>
-					<validate>required-entry validate-digits</validate>
-					<comment>Seconds that the payment will be available before expiring.</comment>
-				</field>
-				<field id="allowspecific" type="allowspecific" sortOrder="90" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-					<label>Payment from Applicable Countries</label>
-					<source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
-				</field>
-				<field id="specificcountry" type="multiselect" sortOrder="100" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-					<label>Payment from Applicable Countries</label>
-					<source_model>Magento\Directory\Model\Config\Source\Country</source_model>
-					<can_be_empty>1</can_be_empty>
-				</field>
-				<field id="sort_order" type="text" sortOrder="200" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-					<label>Sort Order</label>
-				</field>
-				<field id="instructions" type="textarea" sortOrder="210" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-					<label>Instructions</label>
-				</field>
-			</group>
+                <group id="onpay_setup" sortOrder="10" showInDefault="1" showInStore="1" showInWebsite="1" translate="label comment">
+                    <label>OnPay Common Setup</label>
+                    <field id="enabled" type="select" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Enabled</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>onpayio/payment/enabled</config_path>
+                    </field>
+                    <field id="test_mode" type="select" sortOrder="20" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Test Mode</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>onpayio/payment/test_mode</config_path>
+                    </field>
+                    <field id="gateway_id" type="text" sortOrder="30" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Gateway ID</label>
+                        <validate>required-entry</validate>
+                        <frontend_model>OnPay\Magento2\Block\System\Config\Readonly</frontend_model>
+                        <config_path>onpayio/payment/gateway_id</config_path>
+                    </field>
+                    <field id="window_secret" type="text" sortOrder="40" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Window secret</label>
+                        <validate>required-entry</validate>
+                        <frontend_model>OnPay\Magento2\Block\System\Config\Readonly</frontend_model>
+                        <config_path>onpayio/payment/window_secret</config_path>
+                    </field>
+                    <field id="payment_window_language" type="select" sortOrder="50" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Payment window language</label>
+                        <source_model>OnPay\Magento2\Model\Config\Source\PaymentWindowLanguage</source_model>
+                        <config_path>onpayio/payment/payment_window_language</config_path>
+                    </field>
+                    <field id="design" type="select" sortOrder="60" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Design</label>
+                        <source_model>OnPay\Magento2\Model\Config\Source\Design</source_model>
+                        <config_path>onpayio/payment/design</config_path>
+                    </field>
+                    <field id="order_status" type="select" sortOrder="70" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>New Order Status</label>
+                        <source_model>Magento\Sales\Model\Config\Source\Order\Status\Newprocessing</source_model>
+                        <config_path>onpayio/payment/order_status</config_path>
+                    </field>
+                    <field id="type" type="select" sortOrder="80" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Type</label>
+                        <source_model>OnPay\Magento2\Model\Config\Source\Type</source_model>
+                        <config_path>onpayio/payment/type</config_path>
+                    </field>
+                    <field id="secure" type="select" sortOrder="100" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>3d Secure</label>
+                        <source_model>OnPay\Magento2\Model\Config\Source\Secure</source_model>
+                        <config_path>onpayio/payment/secure</config_path>
+                    </field>
+                    <field id="expiration" type="text" sortOrder="110" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Expiration</label>
+                        <validate>required-entry validate-digits</validate>
+                        <comment>Seconds that the payment will be available before expiring.</comment>
+                        <config_path>onpayio/payment/expiration</config_path>
+                    </field>
+                    <field id="allowspecific" type="allowspecific" sortOrder="120" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Payment from Applicable Countries</label>
+                        <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
+                        <config_path>onpayio/payment/allowspecific</config_path>
+                    </field>
+                    <field id="specificcountry" type="multiselect" sortOrder="130" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Payment from Applicable Countries</label>
+                        <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
+                        <can_be_empty>1</can_be_empty>
+                        <config_path>onpayio/payment/specificcountry</config_path>
+                    </field>
+                </group>
+                <group id="onpay_select" sortOrder="20" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                    <label>OnPay Select Pament Method</label>
+                    <field id="active" type="select" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Enabled</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/onpay_select/active</config_path>
+                    </field>
+                    <field id="title" type="text" sortOrder="20" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Title</label>
+                        <config_path>payment/onpay_select/title</config_path>
+                    </field>
+                    <field id="sort_order" type="text" sortOrder="30" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Sort Order</label>
+                        <config_path>payment/onpay_select/sort_order</config_path>
+                    </field>
+                    <field id="instructions" type="textarea" sortOrder="40" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Instructions</label>
+                        <config_path>payment/onpay_select/instructions</config_path>
+                    </field>
+                </group>
+                <group id="onpay_card" sortOrder="30" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                    <label>OnPay Credit Card</label>
+                    <field id="active" type="select" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Enabled</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/onpay_card/active</config_path>
+                    </field>
+                    <field id="title" type="text" sortOrder="20" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Title</label>
+                        <config_path>payment/onpay_card/title</config_path>
+                    </field>
+                    <field id="sort_order" type="text" sortOrder="30" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Sort Order</label>
+                        <config_path>payment/onpay_card/sort_order</config_path>
+                    </field>
+                    <field id="instructions" type="textarea" sortOrder="40" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Instructions</label>
+                        <config_path>payment/onpay_card/instructions</config_path>
+                    </field>
+                </group>
+                <group id="onpay_paypal" sortOrder="40" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                    <label>OnPay PayPal</label>
+                    <field id="active" type="select" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Enabled</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/onpay_paypal/active</config_path>
+                    </field>
+                    <field id="title" type="text" sortOrder="20" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Title</label>
+                        <config_path>payment/onpay_paypal/title</config_path>
+                    </field>
+                    <field id="sort_order" type="text" sortOrder="30" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Sort Order</label>
+                        <config_path>payment/onpay_paypal/sort_order</config_path>
+                    </field>
+                    <field id="instructions" type="textarea" sortOrder="40" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Instructions</label>
+                        <config_path>payment/onpay_paypal/instructions</config_path>
+                    </field>
+                </group>
+                <group id="onpay_mobilepay" sortOrder="50" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                    <label>OnPay MobilePay</label>
+                    <field id="active" type="select" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Enabled</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/onpay_mobilepay/active</config_path>
+                    </field>
+                    <field id="title" type="text" sortOrder="20" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Title</label>
+                        <config_path>payment/onpay_mobilepay/title</config_path>
+                    </field>
+                    <field id="sort_order" type="text" sortOrder="30" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Sort Order</label>
+                        <config_path>payment/onpay_mobilepay/sort_order</config_path>
+                    </field>
+                    <field id="instructions" type="textarea" sortOrder="40" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Instructions</label>
+                        <config_path>payment/onpay_mobilepay/instructions</config_path>
+                    </field>
+                </group>
+                <group id="onpay_viabill" sortOrder="60" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                    <label>OnPay ViaBill</label>
+                    <field id="active" type="select" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Enabled</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/onpay_viabill/active</config_path>
+                    </field>
+                    <field id="title" type="text" sortOrder="20" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Title</label>
+                        <config_path>payment/onpay_viabill/title</config_path>
+                    </field>
+                    <field id="sort_order" type="text" sortOrder="30" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Sort Order</label>
+                        <config_path>payment/onpay_viabill/sort_order</config_path>
+                    </field>
+                    <field id="instructions" type="textarea" sortOrder="40" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Instructions</label>
+                        <config_path>payment/onpay_viabill/instructions</config_path>
+                    </field>
+                </group>
+                <group id="onpay_anyday" sortOrder="70" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                    <label>OnPay Anyday</label>
+                    <field id="active" type="select" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Enabled</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/onpay_anyday/active</config_path>
+                    </field>
+                    <field id="title" type="text" sortOrder="20" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Title</label>
+                        <config_path>payment/onpay_anyday/title</config_path>
+                    </field>
+                    <field id="sort_order" type="text" sortOrder="30" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Sort Order</label>
+                        <config_path>payment/onpay_anyday/sort_order</config_path>
+                    </field>
+                    <field id="instructions" type="textarea" sortOrder="40" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Instructions</label>
+                        <config_path>payment/onpay_anyday/instructions</config_path>
+                    </field>
+                </group>
+                <group id="onpay_swish" sortOrder="80" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                    <label>OnPay Swish</label>
+                    <field id="active" type="select" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Enabled</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/onpay_swish/active</config_path>
+                    </field>
+                    <field id="title" type="text" sortOrder="20" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Title</label>
+                        <config_path>payment/onpay_swish/title</config_path>
+                    </field>
+                    <field id="sort_order" type="text" sortOrder="30" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Sort Order</label>
+                        <config_path>payment/onpay_swish/sort_order</config_path>
+                    </field>
+                    <field id="instructions" type="textarea" sortOrder="40" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Instructions</label>
+                        <config_path>payment/onpay_swish/instructions</config_path>
+                    </field>
+                </group>
+                <group id="onpay_vipps" sortOrder="90" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                    <label>OnPay Vipps</label>
+                    <field id="active" type="select" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Enabled</label>
+                        <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                        <config_path>payment/onpay_vipps/active</config_path>
+                    </field>
+                    <field id="title" type="text" sortOrder="20" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Title</label>
+                        <config_path>payment/onpay_vipps/title</config_path>
+                    </field>
+                    <field id="sort_order" type="text" sortOrder="30" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Sort Order</label>
+                        <config_path>payment/onpay_vipps/sort_order</config_path>
+                    </field>
+                    <field id="instructions" type="textarea" sortOrder="40" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                        <label>Instructions</label>
+                        <config_path>payment/onpay_vipps/instructions</config_path>
+                    </field>
+                </group>
+            </group>
 		</section>
 	</system>
 </config>

@@ -30,6 +30,7 @@ use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Framework\UrlInterface;
 use Magento\Payment\Model\Method\Logger;
 use Magento\Store\Model\ScopeInterface;
+use OnPay\Magento2\Model\Payment\OnPayMobilePayMethod;
 
 /**
  * Config  OnPay\Magento2\Helper\Config
@@ -43,31 +44,33 @@ class Config extends AbstractHelper
 {
     const PLUGIN_VERSION = '1.0.0';
     const MOBILE_PAY_CHECKOUT = 'mobilepay_checkout';
+    const LOGO_DIR = 'images/';
+    const MODULE_NAME = 'OnPay_Magento2';
 
     /**
      * @var ScopeConfigInterface
      */
-    protected ScopeConfigInterface $_scopeConfig;
+    protected $_scopeConfig;
 
     /**
      * @var UrlInterface
      */
-    protected UrlInterface $urlBuilder;
+    protected $urlBuilder;
 
     /**
      * @var Logger
      */
-    protected Logger $logger;
+    protected $logger;
 
     /**
      * @var ProductMetadataInterface
      */
-    protected ProductMetadataInterface $productMetadata;
+    protected $productMetadata;
 
     /**
      * @var string|null
      */
-    private ?string $refreshToken = null;
+    private $refreshToken = null;
 
     /**
      * Construct Function
@@ -76,6 +79,7 @@ class Config extends AbstractHelper
      * @param ResourceConfig $resourceConfig
      * @param UrlInterface $urlBuilder Url Builder
      * @param Logger $logger Class Logger for payment related information (request, response, etc.) which is used for debug
+     * @param ProductMetadataInterface $productMetadata
      */
     public function __construct(
         Context                  $context,
@@ -123,13 +127,24 @@ class Config extends AbstractHelper
     }
 
     /**
+     * @param string $code
+     * @param string $field
+     * @return mixed
+     */
+    protected function getPaymentConfigValue($code, $field)
+    {
+        $path = 'payment/' . $code . '/' . $field;
+        return $this->getConfigValue($path);
+    }
+
+    /**
      * Function isEnable
      *
      * @return boolean
      */
-    public function isEnable()
+    public function isEnabled()
     {
-        return (bool) $this->getConfigValue('payment/onpaypaymentmethod/active');
+        return (bool) $this->getConfigValue('onpayio/payment/enabled');
     }
 
     /**
@@ -139,7 +154,7 @@ class Config extends AbstractHelper
      */
     public function isTestMode()
     {
-        return (bool) $this->getConfigValue('payment/onpaypaymentmethod/test_mode');
+        return (bool) $this->getConfigValue('onpayio/payment/test_mode');
     }
 
     /**
@@ -151,7 +166,7 @@ class Config extends AbstractHelper
     public function getRefreshToken()
     {
         if (null === $this->refreshToken) {
-            $this->refreshToken = $this->getConfigValue('payment/onpaypaymentmethod/refresh_token');
+            $this->refreshToken = $this->getConfigValue('onpayio/payment/refresh_token');
         }
         return $this->refreshToken;
     }
@@ -164,7 +179,7 @@ class Config extends AbstractHelper
     public function setRefreshToken($token)
     {
         $this->refreshToken = $token;
-        $this->setConfigValue('payment/onpaypaymentmethod/refresh_token', $token);
+        $this->setConfigValue('onpayio/payment/refresh_token', $token);
     }
 
     /**
@@ -174,7 +189,7 @@ class Config extends AbstractHelper
      */
     public function getGatewayId()
     {
-        return $this->getConfigValue('payment/onpaypaymentmethod/gateway_id');
+        return $this->getConfigValue('onpayio/payment/gateway_id');
     }
 
     /**
@@ -184,7 +199,7 @@ class Config extends AbstractHelper
      */
     public function setGatewayId($gatewayId)
     {
-        $this->setConfigValue('payment/onpaypaymentmethod/gateway_id', $gatewayId);
+        $this->setConfigValue('onpayio/payment/gateway_id', $gatewayId);
     }
 
     /**
@@ -194,7 +209,7 @@ class Config extends AbstractHelper
      */
     public function getWindowSecret()
     {
-        return $this->getConfigValue('payment/onpaypaymentmethod/window_secret');
+        return $this->getConfigValue('onpayio/payment/window_secret');
     }
 
     /**
@@ -204,7 +219,7 @@ class Config extends AbstractHelper
      */
     public function setWindowSecret($windowSecret)
     {
-        $this->setConfigValue('payment/onpaypaymentmethod/window_secret', $windowSecret);
+        $this->setConfigValue('onpayio/payment/window_secret', $windowSecret);
     }
 
     /**
@@ -214,50 +229,17 @@ class Config extends AbstractHelper
      */
     public function getPaymentWindowLanguage()
     {
-        return $this->getConfigValue('payment/onpaypaymentmethod/payment_window_language');
+        return $this->getConfigValue('onpayio/payment/payment_window_language');
     }
 
     /**
-     * Function getPaymentWindowLanguage
-     *
-     * @return string
-     */
-    public function getInstructions()
-    {
-        return $this->getConfigValue('payment/onpaypaymentmethod/instructions');
-    }
-
-    /**
-     * Function getPaymentWindowLanguage
+     * Function getType
      *
      * @return string
      */
     public function getType()
     {
-        return $this->getConfigValue('payment/onpaypaymentmethod/type');
-    }
-
-    /**
-     * Function getPaymentWindowLanguage
-     *
-     * @return string
-     */
-    public function getMethod()
-    {
-        return $this->getConfigValue('payment/onpaypaymentmethod/method');
-    }
-
-    /**
-     * Function getDeliveryDisabled
-     *
-     * @return string
-     */
-    public function getDeliveryDisabled()
-    {
-        if ($this->getMethod() == self::MOBILE_PAY_CHECKOUT) {
-            return $this->getConfigValue('payment/onpaypaymentmethod/delivery_disabled');
-        }
-        return '';
+        return $this->getConfigValue('onpayio/payment/type');
     }
 
     /**
@@ -267,7 +249,7 @@ class Config extends AbstractHelper
      */
     public function getSecure()
     {
-        return $this->getConfigValue('payment/onpaypaymentmethod/secure');
+        return $this->getConfigValue('onpayio/payment/secure');
     }
 
     /**
@@ -277,7 +259,7 @@ class Config extends AbstractHelper
      */
     public function getDesign()
     {
-        return $this->getConfigValue('payment/onpaypaymentmethod/design');
+        return $this->getConfigValue('onpayio/payment/design');
     }
 
     /**
@@ -287,7 +269,7 @@ class Config extends AbstractHelper
      */
     public function getExpiration()
     {
-        return $this->getConfigValue('payment/onpaypaymentmethod/expiration');
+        return $this->getConfigValue('onpayio/payment/expiration');
     }
 
     /**
@@ -297,7 +279,7 @@ class Config extends AbstractHelper
      */
     public function getOrderStatusAfterPayment()
     {
-        return $this->getConfigValue('payment/onpaypaymentmethod/order_status');
+        return $this->getConfigValue('onpayio/payment/order_status');
     }
 
     /**
@@ -307,7 +289,7 @@ class Config extends AbstractHelper
      */
     public function isAutoCapture()
     {
-        return (bool) $this->getConfigValue('payment/onpaypaymentmethod/auto_capture');
+        return (bool) $this->getConfigValue('onpayio/payment/auto_capture');
     }
 
     /**
@@ -364,5 +346,40 @@ class Config extends AbstractHelper
     public function getCallbackUrl()
     {
         return $this->urlBuilder->getUrl('onpay/callback');
+    }
+
+    /**
+     * @param string $code
+     * @return string
+     */
+    public function getInstructions($code)
+    {
+        return (string)$this->getPaymentConfigValue($code, 'instructions');
+    }
+
+    /**
+     * @param string $code
+     * @return string|null
+     */
+    public function getLogo($code)
+    {
+        $logoUrl = null;
+
+        $file = $this->getPaymentConfigValue($code, 'logo');
+        if (!empty($file))
+        {
+            $logoUrl = self::MODULE_NAME . '/' . self::LOGO_DIR . trim($file);
+        }
+
+        return $logoUrl;
+    }
+
+    /**
+     * @param string $code
+     * @return string
+     */
+    public function getLogoTitle($code)
+    {
+        return (string)$this->getPaymentConfigValue($code, 'logo_title');
     }
 }

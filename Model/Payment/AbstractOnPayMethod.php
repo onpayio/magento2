@@ -51,15 +51,10 @@ use OnPay\OnPayAPI;
  * @license   http://opensource.org/licenses/gpl-3.0 GNU General Public License, version 3 (GPLv3)
  * @link      https://intelligodenmark.dk
  */
-class OnPayPaymentMethod extends AbstractMethod
+abstract class AbstractOnPayMethod extends AbstractMethod
 {
-    const CODE = 'onpaypaymentmethod';
-
-    /**
-     * @var string
-     */
-    protected $_code = self::CODE;
-
+    
+    
     /**
      * @var bool
      */
@@ -167,6 +162,35 @@ class OnPayPaymentMethod extends AbstractMethod
             'redirect_uri' => $helper->getAuthorizeUrl(),
             'gateway_id' => $helper->getGatewayId(),
         ]);
+    }
+
+    /**
+     * Check whether payment method can be used
+     * @param \Magento\Quote\Api\Data\CartInterface|null $quote
+     * @return bool
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    public function isAvailable(\Magento\Quote\Api\Data\CartInterface $quote = null)
+    {
+        return parent::isAvailable($quote) && $this->helper->isEnabled();
+    }
+
+    /**
+     * @param int|null $storeId
+     * @return bool
+     */
+    public function isActive($storeId = null)
+    {
+        return $this->helper->isEnabled() && parent::isActive($storeId);
+    }
+
+    /**
+     * @param int|null $storeId
+     * @return string
+     */
+    public function getInstructions($storeId = null): string
+    {
+        return (string)$this->getConfigData('instructions', $storeId);
     }
 
     /**

@@ -18,24 +18,30 @@
  */
 namespace OnPay\Magento2\Observer;
 
+use Magento\Framework\App\Action\Context;
+use Magento\Framework\Event\Observer;
+use Magento\Framework\Event\ObserverInterface;
+use Magento\Framework\Session\SessionManagerInterface;
+use Magento\Framework\Stdlib\CookieManagerInterface;
+use Magento\Framework\Stdlib\Cookie\CookieMetadataFactory;
 use OnPay\Magento2\Model\Payment\OnPayPaymentMethod;
 use OnPay\Magento2\Block\RedirectUrl;
 
-class SalesOrderPlaceAfter implements \Magento\Framework\Event\ObserverInterface
+class SalesOrderPlaceAfter implements ObserverInterface
 {
     private $_resultFactory;
 
     protected $cookieManager;
-    
+
     protected $cookieMetadataFactory;
-    
+
     protected $sessionManager;
 
     public function __construct(
-        \Magento\Framework\App\Action\Context $context,
-        \Magento\Framework\Stdlib\CookieManagerInterface $cookieManager,
-        \Magento\Framework\Stdlib\Cookie\CookieMetadataFactory $cookieMetadataFactory,
-        \Magento\Framework\Session\SessionManagerInterface $sessionManager
+        Context $context,
+        CookieManagerInterface $cookieManager,
+        CookieMetadataFactory $cookieMetadataFactory,
+        SessionManagerInterface $sessionManager
     ) {
         $this->_resultFactory = $context->getResultFactory();
         $this->cookieManager = $cookieManager;
@@ -43,14 +49,12 @@ class SalesOrderPlaceAfter implements \Magento\Framework\Event\ObserverInterface
         $this->sessionManager = $sessionManager;
     }
 
-    public function execute(\Magento\Framework\Event\Observer $observer)
+    public function execute(Observer $observer)
     {
         $order = $observer->getEvent()->getOrder();
+        $method = $order->getPayment()->getMethodInstance();
 
-        $methodCode = $order->getPayment()->getMethodInstance()->getCode();
-
-        if ($methodCode == OnPayPaymentMethod::CODE) {
-
+        if (false !== strpos($method->getCode(), 'onpay_')) {
             $metadata = $this->cookieMetadataFactory
                 ->createPublicCookieMetadata()
                 ->setDuration(RedirectUrl::COOKIE_DURATION)

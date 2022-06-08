@@ -32,6 +32,8 @@ use OnPay\API\PaymentWindow;
 use OnPay\API\PaymentWindow\PaymentInfo;
 use OnPay\Magento2\Helper\Currency;
 use OnPay\Magento2\Model\ManageOnPay;
+use OnPay\Magento2\Model\Payment\OnPaySelectMethod;
+use OnPay\Magento2\Model\Payment\OnPayMobilePayCheckoutMethod;
 use Sokil\IsoCodes\Database\Countries;
 
 /**
@@ -47,22 +49,60 @@ class RedirectUrl extends Template
     const COOKIE_ORDER_ID = 'onpay_order';
     const COOKIE_DURATION = 120;
 
-    protected Config $helper;
+    /**
+     * @var string|null
+     */
+    protected $incrementId;
 
-    protected Currency $currencyHelper;
+    /**
+     * @var Config
+     */
+    protected $helper;
 
-    protected Countries $isoCodesCountries;
+    /**
+     * @var Currency
+     */
+    protected $currencyHelper;
 
-    protected CookieManagerInterface $cookieManager;
+    /**
+     * @var Countries
+     */
+    protected $isoCodesCountries;
 
-    protected OrderFactory $orderFactory;
+    /**
+     * @var CookieManagerInterface
+     */
+    protected $cookieManager;
 
-    protected RegionFactory $regionFactory;
+    /**
+     * @var OrderFactory
+     */
+    protected $orderFactory;
 
-    protected ManageOnPay $manageOnPay;
+    /**
+     * @var RegionFactory
+     */
+    protected $regionFactory;
 
-    protected PaymentWindow $paymentWindow;
+    /**
+     * @var ManageOnPay
+     */
+    protected $manageOnPay;
 
+    /**
+     * @var PaymentWindow|null
+     */
+    protected $paymentWindow;
+
+    /**
+     * @param Context $context
+     * @param Config $helper
+     * @param CookieManagerInterface $cookieManager
+     * @param OrderFactory $orderFactory
+     * @param Countries $isoCodesCountries
+     * @param RegionFactory $regionFactory
+     * @param ManageOnPay $manageOnPay
+     */
     public function __construct(
         Context                     $context,
         Config                      $helper,
@@ -80,21 +120,37 @@ class RedirectUrl extends Template
         $this->regionFactory = $regionFactory;
         $this->manageOnPay = $manageOnPay;
         $this->currencyHelper = new Currency();
-        $this->createPaymentWindow();
+        $this->paymentWindow = null;
     }
 
-    protected function getOrderCookie()
+    /**
+     * @return string|null
+     * @throws \Magento\Framework\Exception\InputException
+     * @throws \Magento\Framework\Stdlib\Cookie\FailureToSendException
+     */
+    public function getOrderId()
     {
-        $incrementId = $this->cookieManager->getCookie(self::COOKIE_ORDER_ID);
-        $this->deleteOrderCookie();
-        return $incrementId;
+        if (null === $this->incrementId) {
+            $this->incrementId = $this->cookieManager->getCookie(self::COOKIE_ORDER_ID);
+            $this->deleteOrderCookie();
+        }
+        return $this->incrementId;
     }
 
+    /**
+     * @return void
+     * @throws \Magento\Framework\Exception\InputException
+     * @throws \Magento\Framework\Stdlib\Cookie\FailureToSendException
+     */
     private function deleteOrderCookie()
     {
         $this->cookieManager->deleteCookie(self::COOKIE_ORDER_ID);
     }
 
+    /**
+     * @param $orderId
+     * @return \Magento\Sales\Model\Order
+     */
     protected function getOrderDetails($orderId)
     {
         $order = $this->orderFactory->create();
@@ -102,19 +158,58 @@ class RedirectUrl extends Template
         return $order;
     }
 
+    /**
+     * @param $code
+     * @return Countries\Country|null
+     */
     private function getByAlpha2($code)
     {
         return $this->isoCodesCountries->getByAlpha2($code);
     }
 
+    /**
+     * @param $regionId
+     * @return \Magento\Directory\Model\Region
+     */
     private function getRegion($regionId)
     {
         return $this->regionFactory->create()->load($regionId);
     }
 
+    /**
+     * @return PaymentWindow|null
+     * @throws \OnPay\API\Exception\InvalidFormatException
+     */
+    protected function getPaymentWindow()
+    {
+        if (null === $this->paymentWindow) {
+            $this->paymentWindow = $this->createPaymentWindow();
+        }
+        return $this->paymentWindow;
+    }
+
+    /**
+     * @return PaymentWindow|null
+     * @throws \OnPay\API\Exception\InvalidFormatException
+     */
     protected function createPaymentWindow()
     {
-        $orderId = $this->getOrderCookie();
+        $orderId = $this->getOrderId();
+        if (null === $orderId) {
+            //Cannot redirect: Could not get Order ID
+            return null;
+        }
+
+        $order = $this->getOrderDetails($orderId);
+
+        $payment = $order->getPayment();
+        if (null !== $payment->getLastTransId()) {
+            //Cannot redirect: This order is already processed
+            return null;
+        }
+
+        $payment->getTransaction();
+
         $reorder = 'N';
         $paymentWindow = new PaymentWindow();
         $paymentWindow->setGatewayId($this->helper->getGatewayId());
@@ -132,12 +227,12 @@ class RedirectUrl extends Template
         $paymentWindow->setDesign($this->helper->getDesign());
         $paymentWindow->setExpiration($this->helper->getExpiration());
 
-        // Delivery Disabled
-        if ($this->helper->getDeliveryDisabled()) {
-            $paymentWindow->setDeliveryDisabled($this->helper->getDeliveryDisabled());
+        $method = $payment->getMethod();
+        if ($method !== OnPaySelectMethod::METHOD_CODE) {
+            // Remove onpay prefix from method code
+            $paymentWindow->setMethod(str_replace('onpay_', '', $method));
         }
 
-        $order = $this->getOrderDetails($orderId);
         $minorAmount = $this->currencyHelper->majorToMinor($order->getGrandTotal(), $order->getOrderCurrencyCode(), '.');
 
         $paymentWindow->setCurrency($order->getOrderCurrencyCode());
@@ -210,20 +305,62 @@ class RedirectUrl extends Template
         // Update Payment Method
         $this->manageOnPay->updatePaymentAdditionalInformation($paymentWindow->getFormFields(), $order->getPayment());
 
-        $this->paymentWindow = $paymentWindow;
+        return $paymentWindow;
     }
 
+    /**
+     * @return bool
+     */
+    public function isAlreadyPaid()
+    {
+        $orderId = $this->getOrderId();
+        if (null === $orderId) {
+            //Cannot redirect: Could not get Order ID
+            return false;
+        }
+
+        $order = $this->getOrderDetails($orderId);
+        $payment = $order->getPayment();
+        if (null !== $payment->getLastTransId()) {
+            //Cannot redirect: This order is already processed
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @return bool
+     */
     public function isValid()
     {
-        return $this->paymentWindow->isValid();
+        $paymentWindow = $this->getPaymentWindow();
+        if (null === $paymentWindow) {
+            return false;
+        }
+        return $paymentWindow->isValid();
     }
 
+    /**
+     * @return string|null
+     */
     public function getActionUrl()
     {
-        return $this->paymentWindow->getActionUrl();
+        $paymentWindow = $this->getPaymentWindow();
+        if (null === $paymentWindow) {
+            return null;
+        }
+        return $paymentWindow->getActionUrl();
     }
 
+    /**
+     * @return array|null
+     */
     public function getFormFields() {
-        return $this->paymentWindow->getFormFields();
+        $paymentWindow = $this->getPaymentWindow();
+        if (null === $paymentWindow) {
+            return null;
+        }
+        return $paymentWindow->getFormFields();
     }
 }

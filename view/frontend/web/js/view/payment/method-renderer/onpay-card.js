@@ -9,16 +9,19 @@ define(
             {
                 defaults: {
                     redirectAfterPlaceOrder: false,
-                    template: 'OnPay_Magento2/payment/onpaypaymentmethod'
+                    template: 'OnPay_Magento2/payment/onpay-card'
                 },
-                getMailingAddress: function () {
-                    return window.checkoutConfig.payment.checkmo.mailingAddress;
+                getLogo: function () {
+                    return window.checkoutConfig.payment.onpay_card.logo;
+                },
+                displayTitleLogo: function () {
+                    return window.checkoutConfig.payment.onpay_card.logo_title;
                 },
                 getInstructions: function () {
-                    return window.checkoutConfig.payment.onpay.instructions;
+                    return window.checkoutConfig.payment.onpay_card.instructions;
                 },
                 afterPlaceOrder: function () {
-                    $.mage.redirect(window.checkoutConfig.payment.onpay.redirect_url);
+                    $.mage.redirect(window.checkoutConfig.payment.onpay_card.redirect_url);
                     return false;
                 }
             }

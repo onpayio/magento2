@@ -79,7 +79,6 @@ class ManageOnPay
         $this->onPayApi = new OnPayAPI($tokenStorage, [
             'client_id' => $helper->getWebsiteUrl(),
             'redirect_uri' => $helper->getAuthorizeUrl(),
-            'gateway_id' => $helper->getGatewayId(),
         ]);
     }
 
@@ -131,9 +130,11 @@ class ManageOnPay
         $paymentWindow->setGatewayId($this->helper->getGatewayId());
         $paymentWindow->setSecret($this->helper->getWindowSecret());
 
-        if ($paymentWindow->validatePayment($post)) {
+        if (
+            $paymentWindow->validatePayment($post) &&
+            intval($post['onpay_errorcode']) === 0
+        ) {
             $response = true;
-
             $orderId = $post['onpay_reference'];
 
             $order = $this
@@ -156,34 +157,39 @@ class ManageOnPay
      */
     public function decline($post)
     {
-        $response = true;
-        $orderId = $post['onpay_reference'];
+        $response = false;
 
-        $order = $this
-            ->orderFactory
-            ->create();
-        $order->loadByIncrementId($orderId);
+        if (
+            intval($post['onpay_errorcode']) !== 0
+        ) {
+            $response = true;
+            $orderId = $post['onpay_reference'];
 
-        // Set Payment Additional Information
-        $this
-            ->updatePaymentAdditionalInformation(
-                $post,
-                $order->getPayment()
-            );
+            $order = $this
+                ->orderFactory
+                ->create();
+            $order->loadByIncrementId($orderId);
 
-        $this->checkoutSession->restoreQuote();
+            // Set Payment Additional Information
+            $this
+                ->updatePaymentAdditionalInformation(
+                    $post,
+                    $order->getPayment()
+                );
 
-        // Add Comment
-        $order
-            ->addStatusHistoryComment(
-                __("OnPay - Payment declined")
-            );
-        $order->save();
+            $this->checkoutSession->restoreQuote();
 
-        $this
-            ->orderManagement
-            ->cancel($order->getId());
+            // Add Comment
+            $order
+                ->addStatusHistoryComment(
+                    __("OnPay - Payment declined")
+                );
+            $order->save();
 
+            $this
+                ->orderManagement
+                ->cancel($order->getId());
+        }
 
         return $response;
     }
@@ -222,7 +228,7 @@ class ManageOnPay
 
         $transactionComment = __("OnPay - Transaction Authorized.");
 
-        if (isset($post['onpay_uuid'])) {
+        if (array_key_exists('onpay_uuid', $post)) {
             $transactionComment = __(
                 "OnPay - Transaction Authorized.
 					Authorized Id: %1 -authorized",
@@ -232,11 +238,15 @@ class ManageOnPay
             $payment->setAdditionalInformation("OnpayUUID", $post['onpay_uuid']);
         }
 
-        if ($post['onpay_3dsecure']) {
+        if (array_key_exists('onpay_3dsecure', $post)) {
             $payment->setCcSecureVerify($post['onpay_3dsecure']);
         }
 
-        if ($post['onpay_method'] == 'card') {
+        if (
+            array_key_exists('onpay_method', $post) &&
+            $post['onpay_method'] === 'card' &&
+            array_key_exists('onpay_cardtype', $post)
+        ) {
             $payment->setCcType($post['onpay_cardtype']);
             if (array_key_exists('onpay_cardmask', $post)) {
                 $payment->setCcLast4(substr($post['onpay_cardmask'], -4));
