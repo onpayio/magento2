@@ -53,8 +53,6 @@ use OnPay\OnPayAPI;
  */
 abstract class AbstractOnPayMethod extends AbstractMethod
 {
-    
-    
     /**
      * @var bool
      */
@@ -251,7 +249,7 @@ abstract class AbstractOnPayMethod extends AbstractMethod
         $transactionNumber = $payment->getLastTransId();
         $order = $payment->getOrder();
 
-        $message = "OnPay - The invoice can't be refund at this time. Please try again later or make an offline refund.";
+        $message = __("OnPay - The invoice can't be refund at this time. Please try again later or make an offline refund.");
 
         if ($transactionNumber) {
             $minorAmount = $this->currencyHelper->majorToMinor($order->getGrandTotal(), $order->getOrderCurrencyCode(), '.');
@@ -279,7 +277,7 @@ abstract class AbstractOnPayMethod extends AbstractMethod
      */
     public function cancel(InfoInterface $payment)
     {
-        $message = "OnPay - The invoice can't be cancelled at this time. Please try again later or make an offline cancel.";
+        $message = __("OnPay - The invoice can't be cancelled at this time. Please try again later or make an offline cancel.");
         $this->cancelTransaction($payment, $message);
     }
 
@@ -292,7 +290,7 @@ abstract class AbstractOnPayMethod extends AbstractMethod
      */
     public function void(InfoInterface $payment)
     {
-        $message = "OnPay - The invoice can't be voided at this time. Please try again later or make an offline cancel.";
+        $message = __("OnPay - The invoice can't be voided at this time. Please try again later or make an offline cancel.");
         $this->cancelTransaction($payment, $message);
     }
 

@@ -2,7 +2,7 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
 	<system>
 		<section id="payment">
-			<group id="onpay_payment_methods" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label comment">
+			<group id="onpay_payment_methods" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                 <label><![CDATA[<div class="onpay-payment-logo"></div><div class="onpay-payment-byline">OnPay Payment Gateway<br/><p>Accept CreditCard, PayPal and MobilePay through OnPay Gateway</p></div>]]></label>
                 <fieldset_css>complex onpay-section</fieldset_css>
                 <frontend_model>Magento\Paypal\Block\Adminhtml\System\Config\Fieldset\Payment</frontend_model>
@@ -36,12 +36,12 @@
                         <config_path>onpayio/payment/window_secret</config_path>
                     </field>
                     <field id="payment_window_language" type="select" sortOrder="50" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-                        <label>Payment window language</label>
+                        <label>Payment Window Language</label>
                         <source_model>OnPay\Magento2\Model\Config\Source\PaymentWindowLanguage</source_model>
                         <config_path>onpayio/payment/payment_window_language</config_path>
                     </field>
                     <field id="design" type="select" sortOrder="60" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-                        <label>Design</label>
+                        <label>Payment Window Design</label>
                         <source_model>OnPay\Magento2\Model\Config\Source\Design</source_model>
                         <config_path>onpayio/payment/design</config_path>
                     </field>
@@ -51,19 +51,19 @@
                         <config_path>onpayio/payment/order_status</config_path>
                     </field>
                     <field id="type" type="select" sortOrder="80" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-                        <label>Type</label>
+                        <label>Transaction Type</label>
                         <source_model>OnPay\Magento2\Model\Config\Source\Type</source_model>
                         <config_path>onpayio/payment/type</config_path>
                     </field>
                     <field id="secure" type="select" sortOrder="100" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-                        <label>3d Secure</label>
+                        <label>3D Secure</label>
                         <source_model>OnPay\Magento2\Model\Config\Source\Secure</source_model>
                         <config_path>onpayio/payment/secure</config_path>
                     </field>
-                    <field id="expiration" type="text" sortOrder="110" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
+                    <field id="expiration" type="text" sortOrder="110" showInWebsite="1" showInStore="1" showInDefault="1" translate="label comment">
                         <label>Expiration</label>
                         <validate>required-entry validate-digits</validate>
-                        <comment>Seconds that the payment will be available before expiring.</comment>
+                        <comment>Seconds that the payment will be available before expiring</comment>
                         <config_path>onpayio/payment/expiration</config_path>
                     </field>
                     <field id="allowspecific" type="allowspecific" sortOrder="120" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
