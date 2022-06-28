@@ -2,22 +2,17 @@
 
 /**
  * OnPay Magento2 module
- * php version 7.4.27
  *
  * @category  Payment_Method
- * @package   Onpay_Magento
- * @author    Julian F. Christmas <jc@intelligodenmark.dk>
- * @copyright 2022 Team.blue Denmark A/S
- * @license   http://opensource.org/licenses/gpl-3.0 GNU General Public License, version 3 (GPLv3)
- * @link      https://intelligodenmark.dk
+ * @package   OnPay_Magento2
+ * @copyright OnPay
  *
  * @magento-module
  * Plugin Name: OnPay Magento2
  * Plugin URI: https://onpay.io
  * Description: Collect payments using OnPay.io as PSP
- * Author: Julian F. Christmas
  * Version: 1.0.0
- * Author URI: https://intelligodenmark.dk
+ * Author URI: https://onpay.io
  */
 
 namespace OnPay\Magento2\Block;
@@ -41,14 +36,6 @@ use OnPay\Magento2\Model\Payment\OnPaySelectMethod;
 use OnPay\Magento2\Model\Payment\OnPayMobilePayCheckoutMethod;
 use Sokil\IsoCodes\Database\Countries;
 
-/**
- * RedirectUrl OnPay\Magento2\Block\RedirectUrl
- *
- * @author    Julian F. Christmas <jc@intelligodenmark.dk>
- * @copyright 2022 Team.blue Denmark A/S
- * @license   http://opensource.org/licenses/gpl-3.0 GNU General Public License, version 3 (GPLv3)
- * @link      https://intelligodenmark.dk
- */
 class RedirectUrl extends Template
 {
     const COOKIE_ORDER_ID = 'onpay_order';

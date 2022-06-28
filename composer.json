@@ -8,12 +8,6 @@
         "payment",
         "onpay"
     ],
-    "authors": [
-        {
-            "name": "Julian F. Christmas - Intelligo Denmark ApS",
-            "email": "jc@intelligodenmark.dk"
-        }
-    ],
     "require": {
         "php": "^7.4 || ^8.0",
         "magento/magento2-base": "^2.3.2",
