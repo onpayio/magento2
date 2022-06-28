@@ -43,7 +43,7 @@
                 <title>OnPay - PayPal</title>
                 <sort_order></sort_order>
                 <instructions></instructions>
-                <logo></logo>
+                <logo>paypal.svg</logo>
                 <logo_title>PayPal</logo_title>
             </onpay_paypal>
             <onpay_mobilepay>
