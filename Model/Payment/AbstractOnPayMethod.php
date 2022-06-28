@@ -159,8 +159,7 @@ abstract class AbstractOnPayMethod extends AbstractMethod
         $tokenStorage = new OnPayTokenStorage($helper);
         $this->onPayApi = new OnPayAPI($tokenStorage, [
             'client_id' => $helper->getWebsiteUrl(),
-            'redirect_uri' => $helper->getAuthorizeUrl(),
-            'gateway_id' => $helper->getGatewayId(),
+            'redirect_uri' => $helper->getAuthorizeUrl()
         ]);
     }
 
