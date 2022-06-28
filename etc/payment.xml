@@ -6,7 +6,28 @@
 		</group>
 	</groups>
 	<methods>
-		<method name="onpaypaymentmethod">
+		<method name="onpay_select">
+			<allow_multiple_address>1</allow_multiple_address>
+		</method>
+		<method name="onpay_card">
+			<allow_multiple_address>1</allow_multiple_address>
+		</method>
+		<method name="onpay_paypal">
+			<allow_multiple_address>1</allow_multiple_address>
+		</method>
+		<method name="onpay_mobilepay">
+			<allow_multiple_address>1</allow_multiple_address>
+		</method>
+		<method name="onpay_viabill">
+			<allow_multiple_address>1</allow_multiple_address>
+		</method>
+		<method name="onpay_anyday">
+			<allow_multiple_address>1</allow_multiple_address>
+		</method>
+		<method name="onpay_swish">
+			<allow_multiple_address>1</allow_multiple_address>
+		</method>
+		<method name="onpay_vipps">
 			<allow_multiple_address>1</allow_multiple_address>
 		</method>
 	</methods>

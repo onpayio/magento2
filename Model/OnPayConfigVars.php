@@ -2,58 +2,60 @@
 
 /**
  * OnPay Magento2 module
- * php version 7.4.27
  *
- * @author    Julian F. Christmas <jc@intelligodenmark.dk>
- * @copyright 2022 Team.blue Denmark A/S
- * @license   http://opensource.org/licenses/gpl-3.0 GNU General Public License, version 3 (GPLv3)
- * @link      https://intelligodenmark.dk
+ * @category  Payment_Method
+ * @package   OnPay_Magento2
+ * @copyright OnPay
  *
  * @magento-module
  * Plugin Name: OnPay Magento2
  * Plugin URI: https://onpay.io
  * Description: Collect payments using OnPay.io as PSP
- * Author: Julian F. Christmas
  * Version: 1.0.0
- * Author URI: https://intelligodenmark.dk
+ * Author URI: https://onpay.io
  */
 
-namespace OnPay\OnPay\Model;
+namespace OnPay\Magento2\Model;
 
 use Magento\Checkout\Model\ConfigProviderInterface;
+use Magento\Framework\Escaper;
+use Magento\Store\Model\StoreManagerInterface;
+use OnPay\Magento2\Helper\Config;
 
-/**
- * @author    Julian F. Christmas <jc@intelligodenmark.dk>
- * @copyright 2022 Team.blue Denmark A/S
- * @license   http://opensource.org/licenses/gpl-3.0 GNU General Public License, version 3 (GPLv3)
- * @link      https://intelligodenmark.dk
- */
 class OnPayConfigVars implements ConfigProviderInterface
 {
     /**
+     * @var Escaper
+     */
+    protected $escaper;
+
+    /**
      * Helper variable
      *
-     * @var \OnPay\OnPay\Helper\Config
+     * @var Config
      */
-    public $helper;
+    protected $helper;
 
     /**
      * StoreManager variable
      *
-     * @var \Magento\Store\Model\StoreManagerInterface
+     * @var StoreManagerInterface
      */
-    public $storeManager;
+    protected $storeManager;
 
     /**
      * __construct function
      *
-     * @param \OnPay\OnPay\Helper\Config                 $helper       Config from helper
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager store Manager
+     * @param Escaper               $escaper
+     * @param Config                $helper       Config from helper
+     * @param StoreManagerInterface $storeManager store Manager
      */
     public function __construct(
-        \OnPay\OnPay\Helper\Config $helper,
-        \Magento\Store\Model\StoreManagerInterface $storeManager
+        Escaper $escaper,
+        Config $helper,
+        StoreManagerInterface $storeManager
     ) {
+        $this->escaper = $escaper;
         $this->helper = $helper;
         $this->storeManager = $storeManager;
     }
@@ -65,14 +67,40 @@ class OnPayConfigVars implements ConfigProviderInterface
      */
     public function getConfig()
     {
-        return [
-            'payment' => [
-                'onpay' => [
-                    'instructions' => $this->helper->getInstructions(),
-                    'redirect_url' => $this->_getRedirectUrl()
-                ]
-            ]
+        $methods = [
+            'select',
+            'card',
+            'paypal',
+            'mobilepay',
+            'viabill',
+            'anyday',
+            'swish',
+            'vipps',
         ];
+
+        $config = [];
+        foreach ($methods as $method) {
+            $methodCode = 'onpay_' . $method;
+            $config['payment'][$methodCode]['instructions'] = $this->helper->getInstructions($methodCode);
+            $config['payment'][$methodCode]['redirect_url'] = $this->_getRedirectUrl();
+            $config['payment'][$methodCode]['logo'] = $this->getLogo($methodCode);
+            $config['payment'][$methodCode]['logo_title'] = $this->helper->getLogoTitle($methodCode);
+        }
+
+        return $config;
+    }
+
+    /**
+     * @param  $methodCode
+     * @return false|string
+     */
+    private function getLogo($methodCode)
+    {
+        $logo = $this->helper->getLogo($methodCode);
+        if (!empty($logo)) {
+            return nl2br($this->escaper->escapeHtml($logo));
+        }
+        return false;
     }
 
     /**

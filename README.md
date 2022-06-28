@@ -15,7 +15,7 @@ The plugin is tested and confirmed working on
 ### Installation via Composer (Recommended)
 
  - Install the module composer by running `composer require onpayio/module-magento2-payment`
- - Enable the module by running `php bin/magento module:enable OnPay_OnPay`
+ - Enable the module by running `php bin/magento module:enable OnPay_Magento2`
  - Apply database updates by running `php bin/magento setup:upgrade`
  - Compile Magento code base by running `php bin/magento setup:di:compile`
  - Deploy static content by running `php bin/magento setup:static-content:deploy`

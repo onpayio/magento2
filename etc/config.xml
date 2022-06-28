@@ -1,25 +1,102 @@
 <?xml version="1.0" ?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
-	<default>
-		<payment>
-			<onpaypaymentmethod>
-				<active>0</active>
-				<model>OnPay\OnPay\Model\Payment\OnPayPaymentMethod</model>
-				<order_status>pending</order_status>
-				<payment_action>authorize</payment_action>
-				<title>OnPay - Secure card payment</title>
-				<allowspecific>0</allowspecific>
-				<group>offline</group>
-				<payment_window_language>en</payment_window_language>
-				<test_mode>1</test_mode>
-				<type>transaction</type>
-				<method></method>
-				<delivery_disabled>no-reason</delivery_disabled>
-				<secure>forced</secure>
-				<design>window1</design>
-				<expiration>86400</expiration>
-				<minor_units>100</minor_units>
-			</onpaypaymentmethod>
-		</payment>
-	</default>
+    <default>
+        <onpayio>
+            <payment>
+                <enabled>0</enabled>
+                <order_status>pending</order_status>
+                <payment_action>authorize</payment_action>
+                <allowspecific>0</allowspecific>
+                <payment_window_language>en</payment_window_language>
+                <test_mode>1</test_mode>
+                <type>transaction</type>
+                <secure>forced</secure>
+                <design>default</design>
+                <expiration>86400</expiration>
+            </payment>
+        </onpayio>
+        <payment>
+            <onpay_select>
+                <group>onpay</group>
+                <model>OnPay\Magento2\Model\Payment\OnPaySelectMethod</model>
+                <active>0</active>
+                <title>OnPay - Select Payment Method</title>
+                <sort_order></sort_order>
+                <instructions></instructions>
+                <logo>generic.svg</logo>
+                <logo_title>Select Method</logo_title>
+            </onpay_select>
+            <onpay_card>
+                <group>onpay</group>
+                <model>OnPay\Magento2\Model\Payment\OnPayCardMethod</model>
+                <active>0</active>
+                <title>OnPay - CreditCard</title>
+                <sort_order></sort_order>
+                <instructions></instructions>
+                <logo>dankort.svg</logo>
+                <logo_title>CreditCard</logo_title>
+            </onpay_card>
+            <onpay_paypal>
+                <group>onpay</group>
+                <model>OnPay\Magento2\Model\Payment\OnPayPayPalMethod</model>
+                <active>0</active>
+                <title>OnPay - PayPal</title>
+                <sort_order></sort_order>
+                <instructions></instructions>
+                <logo>paypal.svg</logo>
+                <logo_title>PayPal</logo_title>
+            </onpay_paypal>
+            <onpay_mobilepay>
+                <group>onpay</group>
+                <model>OnPay\Magento2\Model\Payment\OnPayMobilePayMethod</model>
+                <active>0</active>
+                <title>OnPay - MobilePay</title>
+                <sort_order></sort_order>
+                <instructions></instructions>
+                <delivery_disabled>no-reason</delivery_disabled>
+                <logo>mobilepay.svg</logo>
+                <logo_title>MobilePay</logo_title>
+            </onpay_mobilepay>
+            <onpay_viabill>
+                <group>onpay</group>
+                <model>OnPay\Magento2\Model\Payment\OnPayViaBillMethod</model>
+                <active>0</active>
+                <title>OnPay - ViaBill</title>
+                <sort_order></sort_order>
+                <instructions></instructions>
+                <logo>viabill.svg</logo>
+                <logo_title>ViaBill</logo_title>
+            </onpay_viabill>
+            <onpay_anyday>
+                <group>onpay</group>
+                <model>OnPay\Magento2\Model\Payment\OnPayAnydayMethod</model>
+                <active>0</active>
+                <title>OnPay - Anyday</title>
+                <sort_order></sort_order>
+                <instructions></instructions>
+                <logo>anyday.svg</logo>
+                <logo_title>Anyday</logo_title>
+            </onpay_anyday>
+            <onpay_swish>
+                <group>onpay</group>
+                <model>OnPay\Magento2\Model\Payment\OnPaySwishMethod</model>
+                <active>0</active>
+                <title>OnPay - Swish</title>
+                <sort_order></sort_order>
+                <instructions></instructions>
+                <logo>swish.svg</logo>
+                <logo_title>Swish</logo_title>
+            </onpay_swish>
+            <onpay_vipps>
+                <group>onpay</group>
+                <model>OnPay\Magento2\Model\Payment\OnPayVippsMethod</model>
+                <active>0</active>
+                <title>OnPay - Vipps</title>
+                <sort_order></sort_order>
+                <instructions></instructions>
+                <logo>vipps.svg</logo>
+                <logo_title>Vipps</logo_title>
+            </onpay_vipps>
+        </payment>
+    </default>
 </config>

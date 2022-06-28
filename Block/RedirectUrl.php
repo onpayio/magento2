@@ -2,237 +2,358 @@
 
 /**
  * OnPay Magento2 module
- * php version 7.4.27
  *
  * @category  Payment_Method
- * @package   Onpay_Magento
- * @author    Julian F. Christmas <jc@intelligodenmark.dk>
- * @copyright 2022 Team.blue Denmark A/S
- * @license   http://opensource.org/licenses/gpl-3.0 GNU General Public License, version 3 (GPLv3)
- * @link      https://intelligodenmark.dk
+ * @package   OnPay_Magento2
+ * @copyright OnPay
  *
  * @magento-module
  * Plugin Name: OnPay Magento2
  * Plugin URI: https://onpay.io
  * Description: Collect payments using OnPay.io as PSP
- * Author: Julian F. Christmas
  * Version: 1.0.0
- * Author URI: https://intelligodenmark.dk
+ * Author URI: https://onpay.io
  */
 
-namespace OnPay\OnPay\Block;
+namespace OnPay\Magento2\Block;
 
-use OnPay\OnPay\Helper\Config;
+use Magento\Directory\Model\Region;
+use Magento\Directory\Model\RegionFactory;
+use Magento\Framework\Exception\InputException;
+use Magento\Framework\Stdlib\Cookie\FailureToSendException;
+use Magento\Framework\Stdlib\CookieManagerInterface;
+use Magento\Framework\View\Element\Template;
+use Magento\Framework\View\Element\Template\Context;
+use Magento\Sales\Model\Order;
+use Magento\Sales\Model\OrderFactory;
+use OnPay\API\Exception\InvalidFormatException;
+use OnPay\Magento2\Helper\Config;
+use OnPay\API\PaymentWindow;
+use OnPay\API\PaymentWindow\PaymentInfo;
+use OnPay\Magento2\Helper\Currency;
+use OnPay\Magento2\Model\ManageOnPay;
+use OnPay\Magento2\Model\Payment\OnPaySelectMethod;
+use OnPay\Magento2\Model\Payment\OnPayMobilePayCheckoutMethod;
+use Sokil\IsoCodes\Database\Countries;
 
-/**
- * RedirectUrl OnPay\OnPay\Block\RedirectUrl
- *
- * @author    Julian F. Christmas <jc@intelligodenmark.dk>
- * @copyright 2022 Team.blue Denmark A/S
- * @license   http://opensource.org/licenses/gpl-3.0 GNU General Public License, version 3 (GPLv3)
- * @link      https://intelligodenmark.dk
- */
-class RedirectUrl extends \Magento\Framework\View\Element\Template
+class RedirectUrl extends Template
 {
     const COOKIE_ORDER_ID = 'onpay_order';
     const COOKIE_DURATION = 120;
-    const INFO_GIFT_AMOUNT = 'onpay_info_gift_card_amount';
-    const INFO_GIFT_COUNT = 'onpay_info_gift_card_count';
 
+    /**
+     * @var string|null
+     */
+    protected $incrementId;
+
+    /**
+     * @var Config
+     */
     protected $helper;
 
+    /**
+     * @var Currency
+     */
+    protected $currencyHelper;
+
+    /**
+     * @var Countries
+     */
     protected $isoCodesCountries;
 
+    /**
+     * @var CookieManagerInterface
+     */
     protected $cookieManager;
 
+    /**
+     * @var OrderFactory
+     */
     protected $orderFactory;
 
-    protected $customerRepositoryInterface;
-
+    /**
+     * @var RegionFactory
+     */
     protected $regionFactory;
 
+    /**
+     * @var ManageOnPay
+     */
     protected $manageOnPay;
 
+    /**
+     * @var PaymentWindow|null
+     */
+    protected $paymentWindow;
+
+    /**
+     * @param Context                $context
+     * @param Config                 $helper
+     * @param CookieManagerInterface $cookieManager
+     * @param OrderFactory           $orderFactory
+     * @param Countries              $isoCodesCountries
+     * @param RegionFactory          $regionFactory
+     * @param ManageOnPay            $manageOnPay
+     */
     public function __construct(
-        \Magento\Framework\View\Element\Template\Context $context,
-        Config $helper,
-        \Magento\Framework\Stdlib\CookieManagerInterface $cookieManager,
-        \Magento\Sales\Model\OrderFactory $orderFactory,
-        \Magento\Customer\Api\CustomerRepositoryInterface $customerRepositoryInterface,
-        \Sokil\IsoCodes\Database\Countries $isoCodesCountries,
-        \Magento\Directory\Model\RegionFactory $regionFactory,
-        \OnPay\OnPay\Model\ManageOnPay $manageOnPay
+        Context                     $context,
+        Config                      $helper,
+        CookieManagerInterface      $cookieManager,
+        OrderFactory                $orderFactory,
+        Countries                   $isoCodesCountries,
+        RegionFactory               $regionFactory,
+        ManageOnPay                 $manageOnPay
     ) {
         parent::__construct($context);
         $this->helper = $helper;
         $this->cookieManager = $cookieManager;
         $this->orderFactory = $orderFactory;
-        $this->customerRepositoryInterface = $customerRepositoryInterface;
         $this->isoCodesCountries = $isoCodesCountries;
         $this->regionFactory = $regionFactory;
         $this->manageOnPay = $manageOnPay;
+        $this->currencyHelper = new Currency();
+        $this->paymentWindow = null;
     }
 
-    public function getGatewayId()
+    /**
+     * @return string|null
+     * @throws InputException
+     * @throws FailureToSendException
+     */
+    public function getOrderId()
     {
-        return $this->helper->getGatewayId();
+        if (null === $this->incrementId) {
+            $this->incrementId = $this->cookieManager->getCookie(self::COOKIE_ORDER_ID);
+            $this->deleteOrderCookie();
+        }
+        return $this->incrementId;
     }
 
-    public function getHashCode($params)
-    {
-        return $this->helper->buildHashCode($params);
-    }
-
-    public function getAcceptUrl()
-    {
-        return $this->helper->getAcceptUrl();
-    }
-
-    public function getOrderCookie()
-    {
-        $incrementId = $this->cookieManager->getCookie(self::COOKIE_ORDER_ID);
-        $this->deleteOrderCookie();
-        return $incrementId;
-    }
-
+    /**
+     * @return void
+     * @throws InputException
+     * @throws FailureToSendException
+     */
     private function deleteOrderCookie()
     {
         $this->cookieManager->deleteCookie(self::COOKIE_ORDER_ID);
     }
 
-    public function getOrderDetails($orderId)
+    /**
+     * @param  $orderId
+     * @return Order
+     */
+    protected function getOrderDetails($orderId)
     {
         $order = $this->orderFactory->create();
         $order->loadByIncrementId($orderId);
         return $order;
     }
 
-    public function getCustomerDetails($customerId)
-    {
-        return $this->customerRepositoryInterface->getById($customerId);
-    }
-
-    public function getByAlpha2($code)
+    /**
+     * @param  $code
+     * @return Countries\Country|null
+     */
+    private function getByAlpha2($code)
     {
         return $this->isoCodesCountries->getByAlpha2($code);
     }
 
-    public function getRegion($regionId)
+    /**
+     * @param  $regionId
+     * @return Region
+     */
+    private function getRegion($regionId)
     {
         return $this->regionFactory->create()->load($regionId);
     }
 
-    public function getPostParams($orderId, $reorder)
+    /**
+     * @return PaymentWindow|null
+     * @throws InvalidFormatException
+     */
+    protected function getPaymentWindow()
     {
+        if (null === $this->paymentWindow) {
+            $this->paymentWindow = $this->createPaymentWindow();
+        }
+        return $this->paymentWindow;
+    }
+
+    /**
+     * @return PaymentWindow|null
+     * @throws InvalidFormatException
+     */
+    protected function createPaymentWindow()
+    {
+        $orderId = $this->getOrderId();
+        if (null === $orderId) {
+            //Cannot redirect: Could not get Order ID
+            return null;
+        }
+
         $order = $this->getOrderDetails($orderId);
+
+        $payment = $order->getPayment();
+        if (null !== $payment->getLastTransId()) {
+            //Cannot redirect: This order is already processed
+            return null;
+        }
+
+        $payment->getTransaction();
+
+        $reorder = 'N';
+        $paymentWindow = new PaymentWindow();
+        $paymentWindow->setGatewayId($this->helper->getGatewayId());
+        $paymentWindow->setSecret($this->helper->getWindowSecret());
+        $paymentWindow->setTestMode($this->helper->isTestMode());
+        $paymentWindow->setPlatform('Magento 2', Config::PLUGIN_VERSION, $this->helper->getMagentoVersion());
+
+        $paymentWindow->setAcceptUrl($this->helper->getAcceptUrl());
+        $paymentWindow->setDeclineUrl($this->helper->getDeclineUrl());
+        $paymentWindow->setCallbackUrl($this->helper->getCallbackUrl());
+        $paymentWindow->setWebsite($this->helper->getWebsiteUrl());
+        $paymentWindow->setType($this->helper->getType());
+        $paymentWindow->set3DSecure($this->helper->getSecure());
+        $paymentWindow->setLanguage($this->helper->getPaymentWindowLanguage());
+        $paymentWindow->setDesign($this->helper->getDesign());
+        $paymentWindow->setExpiration($this->helper->getExpiration());
+
+        $method = $payment->getMethod();
+        if ($method !== OnPaySelectMethod::METHOD_CODE) {
+            // Remove onpay prefix from method code
+            $paymentWindow->setMethod(str_replace('onpay_', '', $method));
+        }
+
+        $minorAmount = $this->currencyHelper->majorToMinor($order->getGrandTotal(), $order->getOrderCurrencyCode(), '.');
+
+        $paymentWindow->setCurrency($order->getOrderCurrencyCode());
+        $paymentWindow->setAmount($minorAmount);
+        $paymentWindow->setReference($order->getIncrementId());
 
         $billingAddress = $order->getBillingAddress();
         $shippingAddress = $order->getShippingAddress();
 
-        $params = [
-            Config::GATEWAY_ID => $this->getGatewayId(),
-            Config::CURRENCY => $order->getOrderCurrencyCode(),
-            Config::AMOUNT => (int)($order->getGrandTotal() * 100),
-            Config::REFERENCE => $order->getIncrementId(),
-            Config::ACCEPT_URL => $this->getAcceptUrl(),
-            Config::BILLING_CITY => $billingAddress->getCity(),
-            Config::BILLING_COUNTRY => $this->getByAlpha2($billingAddress->getCountryId())->getNumericCode(),
-            Config::BILLING_POSTCODE => $billingAddress->getPostcode(),
-            Config::SHIPPING_CITY => $shippingAddress->getCity(),
-            Config::SHIPPING_COUNTRY => $this->getByAlpha2($shippingAddress->getCountryId())->getNumericCode(),
-            Config::SHIPPING_POSTCODE => $shippingAddress->getPostcode(),
-            Config::INFO_NAME => $order->getCustomerName(),
-            Config::INFO_EMAIL => $order->getCustomerEmail(),
-            Config::INFO_REORDER => $reorder,
-            Config::INFO_DECLINE_URL => $this->helper->getDeclineUrl(),
-            Config::INFO_CALLBACK_URL => $this->helper->getCallbacUrl(),
-            Config::TEST_MODE => $this->helper->isTestMode(),
-            Config::WEBSITE => $this->helper->getWebsiteUrl(),
-            Config::TYPE => $this->helper->getType(),
-            Config::SECURE => $this->helper->getSecure(),
-            Config::LANGUAGE => $this->helper->getPaymentWindowLanguage(),
-            Config::DESIGN => $this->helper->getDesign(),
-            Config::EXPIRATION => $this->helper->getExpiration()
-        ];
+        $info = new PaymentInfo();
+        $info->setName($order->getCustomerName());
+        $info->setEmail($order->getCustomerEmail());
+        $info->setReorder($reorder);
 
-        
-
-        // Delivery Disabled
-        if ($this->helper->getDeliveryDisabled()) {
-            $params[Config::DELIVERY_DISABLED] = $this->helper->getDeliveryDisabled();
+        // Billing address
+        if ($billingAddress->getStreet()) {
+            $street = $shippingAddress->getStreet();
+            $info->setBillingAddressLine1($street[0]);
+            if (isset($street[1])) {
+                $info->setBillingAddressLine2($street[1]);
+            }
+            if (isset($street[2])) {
+                $info->setBillingAddressLine3($street[2]);
+            }
         }
-
-        // Region
-        /* if($billingAddress->getRegionId()){
-            $params[Config::BILLING_STATE] = $this->getRegion($billingAddress->getRegionId())->getCode();
-        } */
-
+        $info->setBillingAddressCity($billingAddress->getCity());
+        $info->setBillingAddressPostalCode($billingAddress->getPostcode());
+        $info->setBillingAddressCountry($this->getByAlpha2($billingAddress->getCountryId())->getNumericCode());
         if ($billingAddress->getRegionId()) {
             $code = $this->getRegion($billingAddress->getRegionId())->getCode();
             if (false !== strpos($code, '-')) {
                 $code = substr($code, strpos($code, '-') + 1);
             }
-            $params[Config::BILLING_STATE] = $code;
+            $info->setBillingAddressState($code);
         }
+
+        // Shipping address
+        if ($shippingAddress->getStreet()) {
+            $street = $shippingAddress->getStreet();
+            $info->setShippingAddressLine1($street[0]);
+            if (isset($street[1])) {
+                $info->setShippingAddressLine2($street[1]);
+            }
+            if (isset($street[2])) {
+                $info->setShippingAddressLine3($street[2]);
+            }
+        }
+        $info->setShippingAddressCity($shippingAddress->getCity());
+        $info->setShippingAddressPostalCode($shippingAddress->getPostcode());
+        $info->setShippingAddressCountry($this->getByAlpha2($shippingAddress->getCountryId())->getNumericCode());
         if ($shippingAddress->getRegionId()) {
             $code = $this->getRegion($shippingAddress->getRegionId())->getCode();
             if (false !== strpos($code, '-')) {
                 $code = substr($code, strpos($code, '-') + 1);
             }
-            $params[Config::SHIPPING_STATE] = $code;
+            $info->setShippingAddressState($code);
         }
 
-        /* if($shippingAddress->getRegionId()){
-            $params[Config::SHIPPING_STATE] = $this->getRegion($shippingAddress->getRegionId())->getCode();
-        } */
-
-        // Street For Billing Address
-        if ($billingAddress->getStreet()) {
-            $street = $billingAddress->getStreet();
-            $params[Config::BILLING_LINE1] = $street[0];
-            if (isset($street[1])) {
-                $params[Config::BILLING_LINE2] = $street[1];
-            }
-            if (isset($street[2])) {
-                $params[Config::BILLING_LINE3] = $street[2];
-            }
-        }
-
-        // Street For Shipping Address
-        if ($shippingAddress->getStreet()) {
-            $street = $shippingAddress->getStreet();
-            $params[Config::SHIPPING_LINE1] = $street[0];
-            if (isset($street[1])) {
-                $params[Config::SHIPPING_LINE2] = $street[1];
-            }
-            if (isset($street[2])) {
-                $params[Config::SHIPPING_LINE3] = $street[2];
-            }
-        }
-
-        // Gift
-        $params = $this->getGiftDetails($params, $order);
-
-        // Create Hash Code
-        $params[Config::HASH_MAKE] = $this->getHashCode($params);
-
-        // Update Payment Method
-        $this->manageOnPay->updatePaymentAdditionalInformation($params, $order->getPayment());
-
-        return $params;
-    }
-
-    private function getGiftDetails($params, $order)
-    {
         // Gift
         if ($order->getGiftcertAmount()) {
-            $params[self::INFO_GIFT_AMOUNT] = (int)$order->getGiftcertAmount();
+            $info->setGiftCardAmount((int)$order->getGiftcertAmount());
         }
 
         if ($order->getGiftCards()) {
-            $params[self::INFO_GIFT_COUNT] = $order->getGiftCards();
+            $info->setGiftCardCount($order->getGiftcards());
         }
 
-        return $params;
+        $paymentWindow->setInfo($info);
+
+        // Update Payment Method
+        $this->manageOnPay->updatePaymentAdditionalInformation($paymentWindow->getFormFields(), $order->getPayment());
+
+        return $paymentWindow;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isAlreadyPaid()
+    {
+        $orderId = $this->getOrderId();
+        if (null === $orderId) {
+            //Cannot redirect: Could not get Order ID
+            return false;
+        }
+
+        $order = $this->getOrderDetails($orderId);
+        $payment = $order->getPayment();
+        if (null !== $payment->getLastTransId()) {
+            //Cannot redirect: This order is already processed
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isValid()
+    {
+        $paymentWindow = $this->getPaymentWindow();
+        if (null === $paymentWindow) {
+            return false;
+        }
+        return $paymentWindow->isValid();
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getActionUrl()
+    {
+        $paymentWindow = $this->getPaymentWindow();
+        if (null === $paymentWindow) {
+            return null;
+        }
+        return $paymentWindow->getActionUrl();
+    }
+
+    /**
+     * @return array|null
+     */
+    public function getFormFields()
+    {
+        $paymentWindow = $this->getPaymentWindow();
+        if (null === $paymentWindow) {
+            return null;
+        }
+        return $paymentWindow->getFormFields();
     }
 }

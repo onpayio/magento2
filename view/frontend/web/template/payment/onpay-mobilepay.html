@@ -1,0 +1,65 @@
+<!--
+/**
+ * OnPay Magento2 module
+ *
+ * @category  Payment_Method
+ * @package   OnPay_Magento2
+ * @copyright OnPay
+ *
+ * @magento-module
+ * Plugin Name: OnPay Magento2
+ * Plugin URI: https://onpay.io
+ * Description: Collect payments using OnPay.io as PSP
+ * Version: 1.0.0
+ * Author URI: https://onpay.io
+ */
+-->
+<div class="payment-method" data-bind="css: {'_active': (getCode() == isChecked())}">
+    <div class="payment-method-title field choice">
+        <input type="radio"
+               name="payment[method]"
+               class="radio"
+               data-bind="attr: {'id': getCode()}, value: getCode(), checked: isChecked, click: selectPaymentMethod, visible: isRadioButtonVisible()"/>
+        <!-- ko ifnot: getLogo() -->
+        <label data-bind="attr: {'for': getCode()}" class="label"><span data-bind="text: getTitle()"></span></label>
+        <!-- /ko -->
+        <!-- ko if: getLogo() -->
+            <label data-bind="attr: {'for': getCode()}" class="label"><img class="payment-icon" data-bind="attr: {'src': require.toUrl(getLogo()) , 'alt': getTitle()}"/>
+                <!-- ko if: displayTitleLogo() -->
+                <span data-bind="text: getTitle()"></span>
+                <!-- /ko -->
+            </label>
+        <!-- /ko -->
+    </div>
+    <div class="payment-method-content">
+        <!-- ko foreach: getRegion('messages') -->
+        <!-- ko template: getTemplate() --><!-- /ko -->
+        <!--/ko-->
+        <div class="payment-method-billing-address">
+            <!-- ko foreach: $parent.getRegion(getBillingAddressFormName()) -->
+            <!-- ko template: getTemplate() --><!-- /ko -->
+            <!--/ko-->
+        </div>
+        <p data-bind="html: getInstructions()"></p>
+        <div class="checkout-agreements-block">
+            <!-- ko foreach: $parent.getRegion('before-place-order') -->
+                <!-- ko template: getTemplate() --><!-- /ko -->
+            <!--/ko-->
+        </div>
+        <div class="actions-toolbar">
+            <div class="primary">
+                <button class="action primary checkout"
+                        type="submit"
+                        data-bind="
+                        click: placeOrder,
+                        attr: {title: $t('Place Order')},
+                        css: {disabled: !isPlaceOrderActionAllowed()},
+                        enable: (getCode() == isChecked())
+                        "
+                        disabled>
+                    <span data-bind="i18n: 'Place Order'"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,41 +1,65 @@
 <?php
+
 /**
  * OnPay Magento2 module
  *
  * @category  Payment_Method
- * @package   Onpay_Magento
- * @author    Julian F. Christmas <jc@intelligodenmark.dk>
- * @copyright 2022 Team.blue Denmark A/S
- * @license   GPL-2.0+
+ * @package   OnPay_Magento2
+ * @copyright OnPay
  *
  * @magento-module
  * Plugin Name: OnPay Magento2
  * Plugin URI: https://onpay.io
  * Description: Collect payments using OnPay.io as PSP
- * Author: Julian F. Christmas
  * Version: 1.0.0
- * Author URI: https://intelligodenmark.dk
+ * Author URI: https://onpay.io
  */
-namespace OnPay\OnPay\Observer;
 
-use OnPay\OnPay\Model\Payment\OnPayPaymentMethod;
-use OnPay\OnPay\Block\RedirectUrl;
+namespace OnPay\Magento2\Observer;
 
-class SalesOrderPlaceAfter implements \Magento\Framework\Event\ObserverInterface
+use Magento\Framework\App\Action\Context;
+use Magento\Framework\Controller\ResultFactory;
+use Magento\Framework\Event\Observer;
+use Magento\Framework\Event\ObserverInterface;
+use Magento\Framework\Session\SessionManagerInterface;
+use Magento\Framework\Stdlib\CookieManagerInterface;
+use Magento\Framework\Stdlib\Cookie\CookieMetadataFactory;
+use OnPay\Magento2\Model\Payment\OnPayPaymentMethod;
+use OnPay\Magento2\Block\RedirectUrl;
+
+class SalesOrderPlaceAfter implements ObserverInterface
 {
+    /**
+     * @var ResultFactory
+     */
     private $_resultFactory;
 
+    /**
+     * @var CookieManagerInterface
+     */
     protected $cookieManager;
-    
+
+    /**
+     * @var CookieMetadataFactory
+     */
     protected $cookieMetadataFactory;
-    
+
+    /**
+     * @var SessionManagerInterface
+     */
     protected $sessionManager;
 
+    /**
+     * @param Context                 $context
+     * @param CookieManagerInterface  $cookieManager
+     * @param CookieMetadataFactory   $cookieMetadataFactory
+     * @param SessionManagerInterface $sessionManager
+     */
     public function __construct(
-        \Magento\Framework\App\Action\Context $context,
-        \Magento\Framework\Stdlib\CookieManagerInterface $cookieManager,
-        \Magento\Framework\Stdlib\Cookie\CookieMetadataFactory $cookieMetadataFactory,
-        \Magento\Framework\Session\SessionManagerInterface $sessionManager
+        Context $context,
+        CookieManagerInterface $cookieManager,
+        CookieMetadataFactory $cookieMetadataFactory,
+        SessionManagerInterface $sessionManager
     ) {
         $this->_resultFactory = $context->getResultFactory();
         $this->cookieManager = $cookieManager;
@@ -43,14 +67,17 @@ class SalesOrderPlaceAfter implements \Magento\Framework\Event\ObserverInterface
         $this->sessionManager = $sessionManager;
     }
 
-    public function execute(\Magento\Framework\Event\Observer $observer)
+    /**
+     * @param Observer $observer
+     *
+     * @return $this
+     */
+    public function execute(Observer $observer)
     {
         $order = $observer->getEvent()->getOrder();
+        $method = $order->getPayment()->getMethodInstance();
 
-        $methodCode = $order->getPayment()->getMethodInstance()->getCode();
-
-        if ($methodCode == OnPayPaymentMethod::CODE) {
-
+        if (false !== strpos($method->getCode(), 'onpay_')) {
             $metadata = $this->cookieMetadataFactory
                 ->createPublicCookieMetadata()
                 ->setDuration(RedirectUrl::COOKIE_DURATION)

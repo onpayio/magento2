@@ -1,0 +1,8 @@
+.onpay-section .heading {background: url("images/onpay-logo-text.png") no-repeat 0 50% / 18rem auto; padding-left: 20rem;}
+.onpay-section .button-container {float: right;}
+.onpay-section .config-alt {
+    height: 30px;
+    margin: 0.5rem 0 0;
+    width: 320px;
+}
+.section-config.with-button.onpay-section .config-heading strong { font-weight: normal; }

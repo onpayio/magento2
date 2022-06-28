@@ -3,32 +3,44 @@
  * OnPay Magento2 module
  *
  * @category  Payment_Method
- * @package   Onpay_Magento
- * @author    Julian F. Christmas <jc@intelligodenmark.dk>
- * @copyright 2022 Team.blue Denmark A/S
- * @license   GPL-2.0+
+ * @package   OnPay_Magento2
+ * @copyright OnPay
  *
  * @magento-module
  * Plugin Name: OnPay Magento2
  * Plugin URI: https://onpay.io
  * Description: Collect payments using OnPay.io as PSP
- * Author: Julian F. Christmas
  * Version: 1.0.0
- * Author URI: https://intelligodenmark.dk
+ * Author URI: https://onpay.io
  */
-namespace OnPay\OnPay\Controller\Decline;
 
-class Index extends \Magento\Framework\App\Action\Action
+namespace OnPay\Magento2\Controller\Decline;
+
+use Magento\Framework\App\Action\Action;
+use Magento\Framework\App\Action\Context;
+use Magento\Framework\App\ResponseInterface;
+use Magento\Framework\Controller\ResultFactory;
+use Magento\Framework\Controller\ResultInterface;
+use Magento\Framework\View\Result\PageFactory;
+use OnPay\Magento2\Model\ManageOnPay;
+
+class Index extends Action
 {
+    /**
+     * @var PageFactory
+     */
     protected $_pageFactory;
-    
+
+    /**
+     * @var ManageOnPay
+     */
     protected $manageOnPay;
     
     public function __construct(
-        \Magento\Framework\App\Action\Context $context,
-        \Magento\Framework\View\Result\PageFactory $pageFactory,
-        \Magento\Framework\Controller\ResultFactory $resultFactory,
-        \OnPay\OnPay\Model\ManageOnPay $manageOnPay
+        Context $context,
+        PageFactory $pageFactory,
+        ResultFactory $resultFactory,
+        ManageOnPay $manageOnPay
     ) {
         $this->_pageFactory = $pageFactory;
         $this->manageOnPay = $manageOnPay;
@@ -36,11 +48,14 @@ class Index extends \Magento\Framework\App\Action\Action
         parent::__construct($context);
     }
 
+    /**
+     * @return ResultInterface|ResponseInterface
+     */
     public function execute()
     {
         $post = $this->getRequest()->getParams();
 
-        $redirect = $this->resultFactory->create(\Magento\Framework\Controller\ResultFactory::TYPE_REDIRECT);
+        $redirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
         $redirect->setUrl('/');
 
         $response = $this->manageOnPay->decline($post);

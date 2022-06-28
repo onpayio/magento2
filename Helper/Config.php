@@ -2,164 +2,133 @@
 
 /**
  * OnPay Magento2 module
- * php version 7.4.27
  *
- * @author    Julian F. Christmas <jc@intelligodenmark.dk>
- * @copyright 2022 Team.blue Denmark A/S
- * @license   http://opensource.org/licenses/gpl-3.0 GNU General Public License, version 3 (GPLv3)
- * @link      https://intelligodenmark.dk
+ * @category  Payment_Method
+ * @package   OnPay_Magento2
+ * @copyright OnPay
  *
  * @magento-module
  * Plugin Name: OnPay Magento2
  * Plugin URI: https://onpay.io
  * Description: Collect payments using OnPay.io as PSP
- * Author: Julian F. Christmas
  * Version: 1.0.0
- * Author URI: https://intelligodenmark.dk
+ * Author URI: https://onpay.io
  */
 
 declare(strict_types=1);
 
-namespace OnPay\OnPay\Helper;
+namespace OnPay\Magento2\Helper;
 
+use Magento\Config\Model\ResourceModel\Config as ResourceConfig;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
+use Magento\Framework\App\Helper\Context;
+use Magento\Framework\App\ProductMetadataInterface;
+use Magento\Framework\UrlInterface;
+use Magento\Payment\Model\Method\Logger;
+use Magento\Store\Model\ScopeInterface;
+use OnPay\Magento2\Model\Payment\OnPayMobilePayMethod;
 
-/**
- * Config  OnPay\OnPay\Helper\Config
- *
- * @author    Julian F. Christmas <jc@intelligodenmark.dk>
- * @copyright 2022 Team.blue Denmark A/S
- * @license   http://opensource.org/licenses/gpl-3.0 GNU General Public License, version 3 (GPLv3)
- * @link      https://intelligodenmark.dk
- */
 class Config extends AbstractHelper
 {
-    // Onpay Input
-    const GATEWAY_ID = 'onpay_gatewayid';
-    const CURRENCY = 'onpay_currency';
-    const AMOUNT = 'onpay_amount';
-    const REFERENCE = 'onpay_reference';
-    const ACCEPT_URL = 'onpay_accepturl';
-    const BILLING_CITY = 'onpay_info_billing_address_city';
-    const BILLING_COUNTRY = 'onpay_info_billing_address_country';
-    const BILLING_LINE1 = 'onpay_info_billing_address_line1';
-    const BILLING_LINE2 = 'onpay_info_billing_address_line2';
-    const BILLING_LINE3 = 'onpay_info_billing_address_line3';
-    const BILLING_POSTCODE = 'onpay_info_billing_address_postal_code';
-    const BILLING_STATE = 'onpay_info_billing_address_state';
-    const SHIPPING_CITY = 'onpay_info_shipping_address_city';
-    const SHIPPING_COUNTRY = 'onpay_info_shipping_address_country';
-    const SHIPPING_LINE1 = 'onpay_info_shipping_address_line1';
-    const SHIPPING_LINE2 = 'onpay_info_shipping_address_line2';
-    const SHIPPING_LINE3 = 'onpay_info_shipping_address_line3';
-    const SHIPPING_POSTCODE = 'onpay_info_shipping_address_postal_code';
-    const SHIPPING_STATE = 'onpay_info_shipping_address_state';
-    const INFO_NAME = 'onpay_info_name';
-    const INFO_EMAIL = 'onpay_info_email';
-    const INFO_REORDER = 'onpay_info_reorder';
-    const INFO_GIFT_AMOUNT = 'onpay_info_gift_card_amount';
-    const INFO_GIFT_COUNT = 'onpay_info_gift_card_count';
-    const INFO_DECLINE_URL = 'onpay_declineurl';
-    const INFO_CALLBACK_URL = 'onpay_callbackurl';
-    const TEST_MODE = 'onpay_testmode';
-    const WEBSITE = 'onpay_website';
-    const TYPE = 'onpay_type';
-    const METHOD = 'onpay_method';
-    const DELIVERY_DISABLED = 'onpay_delivery_disabled';
-    const SECURE = 'onpay_3dsecure';
-    const LANGUAGE = 'onpay_language';
-    const DESIGN = 'onpay_design';
-    const EXPIRATION = 'onpay_expiration';
-    const HASH_MAKE = 'onpay_hmac_sha1';
-
-    private $_hashCodeBuildParams = [
-        self::GATEWAY_ID,
-        self::CURRENCY,
-        self::AMOUNT,
-        self::REFERENCE,
-        self::ACCEPT_URL,
-        self::BILLING_CITY,
-        self::BILLING_COUNTRY,
-        self::BILLING_LINE1,
-        self::BILLING_LINE2,
-        self::BILLING_LINE3,
-        self::BILLING_POSTCODE,
-        self::BILLING_STATE,
-        self::SHIPPING_CITY,
-        self::SHIPPING_COUNTRY,
-        self::SHIPPING_LINE1,
-        self::SHIPPING_LINE2,
-        self::SHIPPING_LINE3,
-        self::SHIPPING_POSTCODE,
-        self::SHIPPING_STATE,
-        self::INFO_NAME,
-        self::INFO_EMAIL,
-        self::INFO_REORDER,
-        self::INFO_GIFT_AMOUNT,
-        self::INFO_GIFT_COUNT,
-        self::INFO_DECLINE_URL,
-        self::INFO_CALLBACK_URL,
-        self::TEST_MODE,
-        self::WEBSITE,
-        self::TYPE,
-        self::METHOD,
-        self::DELIVERY_DISABLED,
-        self::SECURE,
-        self::LANGUAGE,
-        self::DESIGN,
-        self::EXPIRATION,
-    ];
-
+    const PLUGIN_VERSION = '1.0.0';
     const MOBILE_PAY_CHECKOUT = 'mobilepay_checkout';
+    const LOGO_DIR = 'images/';
+    const MODULE_NAME = 'OnPay_Magento2';
 
-    const API_URL = 'https://api.onpay.io/v1/transaction/';
-
+    /**
+     * @var ScopeConfigInterface
+     */
     protected $_scopeConfig;
 
+    /**
+     * @var ResourceConfig
+     */
+    protected $_resourceConfig;
+
+    /**
+     * @var UrlInterface
+     */
     protected $urlBuilder;
 
+    /**
+     * @var Logger
+     */
     protected $logger;
 
     /**
-     * @var \Magento\Framework\HTTP\Client\Curl
+     * @var ProductMetadataInterface
      */
-    protected $_curl;
+    protected $productMetadata;
+
+    /**
+     * @var string|null
+     */
+    private $refreshToken = null;
 
     /**
      * Construct Function
      *
-     * @param \Magento\Framework\App\Helper\Context $context    Constructor modification point for Magento\Framework\App\Helper.
-     * @param \Magento\Framework\UrlInterface       $urlBuilder Url Builder
-     * @param \Magento\Payment\Model\Method\Logger  $logger     Class Logger for payment related information (request, response, etc.) which is used for debug
+     * @param Context                  $context         Constructor modification point for Magento\Framework\App\Helper.
+     * @param ResourceConfig           $resourceConfig
+     * @param UrlInterface             $urlBuilder      Url Builder
+     * @param Logger                   $logger          Class Logger for payment related information (request, response, etc.) which is used for debug
+     * @param ProductMetadataInterface $productMetadata
      */
     public function __construct(
-        \Magento\Framework\App\Helper\Context $context,
-        \Magento\Framework\UrlInterface $urlBuilder,
-        \Magento\Payment\Model\Method\Logger $logger,
-        \Magento\Framework\HTTP\Client\Curl $curl
+        Context                  $context,
+        ResourceConfig           $resourceConfig,
+        UrlInterface             $urlBuilder,
+        Logger                   $logger,
+        ProductMetadataInterface $productMetadata
     ) {
         $this->_scopeConfig = $context->getScopeConfig();
+        $this->_resourceConfig = $resourceConfig;
         $this->urlBuilder = $urlBuilder;
         $this->logger = $logger;
-        $this->_curl = $curl;
+        $this->productMetadata = $productMetadata;
         parent::__construct($context);
     }
 
     /**
-     * Function isConfigValue
+     * Function getConfigValue
      *
-     * @param [type] $path  Path
-     * @param [type] $store Store
+     * @param string $path Path
      *
-     * @return boolean
+     * @return mixed
      */
-    public function isConfigValue($path, $store = null)
+    protected function getConfigValue($path)
     {
         return $this->_scopeConfig->getValue(
             $path,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-            $store
+            ScopeInterface::SCOPE_STORE
         );
+    }
+
+    /**
+     * Function getConfigValue
+     *
+     * @param string $path  Path
+     * @param string $value Value
+     */
+    protected function setConfigValue($path, $value)
+    {
+        $this->_resourceConfig->saveConfig(
+            $path,
+            $value,
+            ScopeConfigInterface::SCOPE_TYPE_DEFAULT
+        );
+    }
+
+    /**
+     * @param  string $code
+     * @param  string $field
+     * @return mixed
+     */
+    protected function getPaymentConfigValue($code, $field)
+    {
+        $path = 'payment/' . $code . '/' . $field;
+        return $this->getConfigValue($path);
     }
 
     /**
@@ -167,9 +136,9 @@ class Config extends AbstractHelper
      *
      * @return boolean
      */
-    public function isEnable()
+    public function isEnabled()
     {
-        return (bool) $this->isConfigValue('payment/onpaypaymentmethod/active');
+        return (bool) $this->getConfigValue('onpayio/payment/enabled');
     }
 
     /**
@@ -179,7 +148,32 @@ class Config extends AbstractHelper
      */
     public function isTestMode()
     {
-        return (bool) $this->isConfigValue('payment/onpaypaymentmethod/test_mode');
+        return (bool) $this->getConfigValue('onpayio/payment/test_mode');
+    }
+
+    /**
+     * Function getRefreshToken
+     * Store the token internally, for it to be available for subsequent requests without page reload.
+     *
+     * @return string
+     */
+    public function getRefreshToken()
+    {
+        if (null === $this->refreshToken) {
+            $this->refreshToken = (string) $this->getConfigValue('onpayio/payment/refresh_token');
+        }
+        return $this->refreshToken;
+    }
+
+    /**
+     * Function setRefreshToken
+     *
+     * @param string $token
+     */
+    public function setRefreshToken($token)
+    {
+        $this->refreshToken = $token;
+        $this->setConfigValue('onpayio/payment/refresh_token', $token);
     }
 
     /**
@@ -189,7 +183,17 @@ class Config extends AbstractHelper
      */
     public function getGatewayId()
     {
-        return $this->isConfigValue('payment/onpaypaymentmethod/gateway_id');
+        return (string) $this->getConfigValue('onpayio/payment/gateway_id');
+    }
+
+    /**
+     * Function setGatewayId
+     *
+     * @param string $gatewayId
+     */
+    public function setGatewayId($gatewayId)
+    {
+        $this->setConfigValue('onpayio/payment/gateway_id', $gatewayId);
     }
 
     /**
@@ -199,17 +203,17 @@ class Config extends AbstractHelper
      */
     public function getWindowSecret()
     {
-        return $this->isConfigValue('payment/onpaypaymentmethod/window_secret');
+        return (string) $this->getConfigValue('onpayio/payment/window_secret');
     }
 
     /**
-     * Function getApiKey
+     * Function setWindowSecret
      *
-     * @return string
+     * @param string $windowSecret
      */
-    public function getApiKey()
+    public function setWindowSecret($windowSecret)
     {
-        return $this->isConfigValue('payment/onpaypaymentmethod/api_key');
+        $this->setConfigValue('onpayio/payment/window_secret', $windowSecret);
     }
 
     /**
@@ -219,50 +223,17 @@ class Config extends AbstractHelper
      */
     public function getPaymentWindowLanguage()
     {
-        return $this->isConfigValue('payment/onpaypaymentmethod/payment_window_language');
+        return (string) $this->getConfigValue('onpayio/payment/payment_window_language');
     }
 
     /**
-     * Function getPaymentWindowLanguage
-     *
-     * @return string
-     */
-    public function getInstructions()
-    {
-        return $this->isConfigValue('payment/onpaypaymentmethod/instructions');
-    }
-
-    /**
-     * Function getPaymentWindowLanguage
+     * Function getType
      *
      * @return string
      */
     public function getType()
     {
-        return $this->isConfigValue('payment/onpaypaymentmethod/type');
-    }
-
-    /**
-     * Function getPaymentWindowLanguage
-     *
-     * @return string
-     */
-    public function getMethod()
-    {
-        return $this->isConfigValue('payment/onpaypaymentmethod/method');
-    }
-
-    /**
-     * Function getDeliveryDisabled
-     *
-     * @return string
-     */
-    public function getDeliveryDisabled()
-    {
-        if ($this->getMethod() == self::MOBILE_PAY_CHECKOUT) {
-            return $this->isConfigValue('payment/onpaypaymentmethod/delivery_disabled');
-        }
-        return '';
+        return (string) $this->getConfigValue('onpayio/payment/type');
     }
 
     /**
@@ -272,7 +243,7 @@ class Config extends AbstractHelper
      */
     public function getSecure()
     {
-        return $this->isConfigValue('payment/onpaypaymentmethod/secure');
+        return (string) $this->getConfigValue('onpayio/payment/secure');
     }
 
     /**
@@ -282,7 +253,7 @@ class Config extends AbstractHelper
      */
     public function getDesign()
     {
-        return $this->isConfigValue('payment/onpaypaymentmethod/design');
+        return (string) $this->getConfigValue('onpayio/payment/design');
     }
 
     /**
@@ -292,7 +263,7 @@ class Config extends AbstractHelper
      */
     public function getExpiration()
     {
-        return $this->isConfigValue('payment/onpaypaymentmethod/expiration');
+        return (string) $this->getConfigValue('onpayio/payment/expiration');
     }
 
     /**
@@ -302,7 +273,7 @@ class Config extends AbstractHelper
      */
     public function getOrderStatusAfterPayment()
     {
-        return $this->isConfigValue('payment/onpaypaymentmethod/order_status');
+        return (string) $this->getConfigValue('onpayio/payment/order_status');
     }
 
     /**
@@ -312,7 +283,15 @@ class Config extends AbstractHelper
      */
     public function isAutoCapture()
     {
-        return (bool) $this->isConfigValue('payment/onpaypaymentmethod/auto_capture');
+        return (bool) $this->getConfigValue('onpayio/payment/auto_capture');
+    }
+
+    /**
+     * @return string
+     */
+    public function getAuthorizeUrl()
+    {
+        return $this->urlBuilder->getUrl('onpay/auth/index');
     }
 
     /**
@@ -342,7 +321,15 @@ class Config extends AbstractHelper
      */
     public function getWebsiteUrl()
     {
-        return $this->urlBuilder->getUrl('/');
+        return $this->urlBuilder->getBaseUrl();
+    }
+
+    /**
+     * @return string
+     */
+    public function getMagentoVersion()
+    {
+        return $this->productMetadata->getVersion();
     }
 
     /**
@@ -350,100 +337,42 @@ class Config extends AbstractHelper
      *
      * @return string
      */
-    public function getCallbacUrl()
+    public function getCallbackUrl()
     {
         return $this->urlBuilder->getUrl('onpay/callback');
     }
 
     /**
-     * Function buildHashCode
-     *
-     * @param array $params Params
-     *
+     * @param  string $code
      * @return string
      */
-    public function buildHashCode(array $params)
+    public function getInstructions($code)
     {
-        ksort($params);
-
-        $toHashArray = [];
-
-        foreach ($params as $key => $value) {
-            if (0 === strpos($key, 'onpay_') && self::HASH_MAKE !== $key && in_array($key, $this->_hashCodeBuildParams)) {
-                $toHashArray[$key] = $value;
-            }
-        }
-
-        $queryString = strtolower(http_build_query($toHashArray));
-
-        return hash_hmac('sha1', $queryString, $this->getWindowSecret());
+        return (string) $this->getPaymentConfigValue($code, 'instructions');
     }
 
     /**
-     * Function checkHashCode
-     *
-     * @param [type] $additionalInformation Additional Information
-     *
-     * @return void
+     * @param  string $code
+     * @return string|null
      */
-    public function checkHashCode($additionalInformation)
+    public function getLogo($code)
     {
-        $hashCode = $this->buildHashCode($additionalInformation);
+        $logoUrl = null;
 
-        //if($hashCode == $additionalInformation[self::HASH_MAKE]) {
-        return true;
-        //}
-        //return false;
+        $file = (string) $this->getPaymentConfigValue($code, 'logo');
+        if (!empty($file)) {
+            $logoUrl = self::MODULE_NAME . '/' . self::LOGO_DIR . trim($file);
+        }
+
+        return $logoUrl;
     }
 
     /**
-     * Function connectToOnPayTransaction
-     *
-     * @param [type] $type   Type
-     * @param [type] $tranId Transaction Id
-     * @param [type] $method Method
-     * @param [type] $amount Amount
-     *
-     * @return void
+     * @param  string $code
+     * @return string
      */
-    public function connectToOnPayTransaction($type, $tranId, $method, $amount)
+    public function getLogoTitle($code)
     {
-
-        $minor_units = $this->isConfigValue('payment/onpaypaymentmethod/minor_units');
-
-        $postData = [];
-        if ($amount) {
-            $postData = [
-                'data' => [
-                    'amount' => (int)($amount * $minor_units)
-                ]
-            ];
-        }
-
-        try {
-            $apiUrl = self::API_URL . $tranId . '/' . $type;
-
-            $headers = [
-                "Authorization" => "Bearer {$this->getApiKey()}",
-                "Content-Type" => "application/json"
-            ];
-
-            $this->_curl->setHeaders($headers);
-            $this->_curl->post($apiUrl, $postData);
-
-            $response = $this->_curl->getBody();
-            $response = json_decode($response, true);
-        } catch (\Exception $e) {
-            $this->logger->debug($e->getMessage());
-            $response = [
-                'errors' => [
-                    [
-                        'message' => $e->getMessage()
-                    ]
-                ]
-            ];
-        } finally {
-            return $response;
-        }
+        return (string) $this->getPaymentConfigValue($code, 'logo_title');
     }
 }

@@ -1,35 +1,47 @@
 <?php
 
 /**
- * @var \OnPay\OnPay\Block\RedirectUrl $block
+ * OnPay Magento2 module
+ *
+ * @category  Payment_Method
+ * @package   OnPay_Magento2
+ * @copyright OnPay
+ *
+ * @magento-module
+ * Plugin Name: OnPay Magento2
+ * Plugin URI: https://onpay.io
+ * Description: Collect payments using OnPay.io as PSP
+ * Version: 1.0.0
+ * Author URI: https://onpay.io
  */
-$orderId = $block->getOrderCookie();
 
-$params = $block->getPostParams($orderId, 'N');
+/**
+ * @var \OnPay\Magento2\Block\RedirectUrl $block
+ */
 ?>
 
-<form id="onpay_window_form" method="post" action="https://onpay.io/window/v3/" accept-charset="UTF-8">
-
-    <?php
-    if (count($params)) {
-        foreach ($params as $key => $value) {
-            ?>
+<?php if ($block->isValid()): ?>
+    <form id="onpay_window_form" method="post" action="<?= $block->getActionUrl(); ?>" accept-charset="UTF-8">
+        <?php foreach ($block->getFormFields() as $key => $value): ?>
             <input type="hidden" name="<?= $block->escapeHtml($key); ?>" value="<?= $block->escapeHtml($value); ?>">
+        <?php endforeach; ?>
 
-            <?php
-        }
-    }
-    ?>
+        <input type="submit" style="display:none;" value="Make Payment">
+    </form>
+    <script type="text/javascript">
+        require([
+            'jquery'
+        ], function($) {
+            'use strict';
+            $('#onpay_window_form').submit();
+        });
+    </script>
+<?php elseif (null === $block->getOrderId()): ?>
+    <h3><?= $block->escapeHtml(__('Could not get OrderID')); ?></h3>
+<?php elseif ($block->isAlreadyPaid()): ?>
+    <h3><?= $block->escapeHtml(__('This order has already been processed')); ?></h3>
+    <p><?= $block->escapeHtml(__('Order ID: %s', $block->getOrderId()));?></p>
+<?php else: ?>
+    <h3><?= $block->escapeHtml(__('Payment window is not configured correct')); ?></h3>
+<?php endif; ?>
 
-    <input type="submit" style="display:none;" value="Start Payment">
-
-</form>
-
-<script type="text/javascript">
-    require([
-        'jquery'
-    ], function($) {
-        'use strict';
-        $('#onpay_window_form').submit();
-    });
-</script>

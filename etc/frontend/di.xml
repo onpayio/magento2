@@ -4,7 +4,7 @@
     <type name="Magento\Checkout\Model\CompositeConfigProvider">
         <arguments>
             <argument name="configProviders" xsi:type="array">
-                <item name="onpay_payment_config_provider" xsi:type="object">OnPay\OnPay\Model\OnPayConfigVars</item>
+                <item name="onpay_payment_config_provider" xsi:type="object">OnPay\Magento2\Model\OnPayConfigVars</item>
             </argument>
         </arguments>
     </type>
