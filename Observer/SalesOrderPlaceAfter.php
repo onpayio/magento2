@@ -19,6 +19,7 @@
 namespace OnPay\Magento2\Observer;
 
 use Magento\Framework\App\Action\Context;
+use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Session\SessionManagerInterface;
@@ -29,14 +30,32 @@ use OnPay\Magento2\Block\RedirectUrl;
 
 class SalesOrderPlaceAfter implements ObserverInterface
 {
+    /**
+     * @var ResultFactory
+     */
     private $_resultFactory;
 
+    /**
+     * @var CookieManagerInterface
+     */
     protected $cookieManager;
 
+    /**
+     * @var CookieMetadataFactory
+     */
     protected $cookieMetadataFactory;
 
+    /**
+     * @var SessionManagerInterface
+     */
     protected $sessionManager;
 
+    /**
+     * @param Context                 $context
+     * @param CookieManagerInterface  $cookieManager
+     * @param CookieMetadataFactory   $cookieMetadataFactory
+     * @param SessionManagerInterface $sessionManager
+     */
     public function __construct(
         Context $context,
         CookieManagerInterface $cookieManager,
@@ -49,6 +68,11 @@ class SalesOrderPlaceAfter implements ObserverInterface
         $this->sessionManager = $sessionManager;
     }
 
+    /**
+     * @param Observer $observer
+     *
+     * @return $this
+     */
     public function execute(Observer $observer)
     {
         $order = $observer->getEvent()->getOrder();

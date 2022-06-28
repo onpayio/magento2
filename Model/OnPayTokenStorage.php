@@ -9,8 +9,14 @@ use OnPay\Magento2\Helper\Config;
 
 class OnPayTokenStorage implements TokenStorageInterface
 {
+    /**
+     * @var Config
+     */
     protected Config $config;
 
+    /**
+     * @param Config $config
+     */
     public function __construct(Config $config)
     {
         $this->config = $config;
@@ -24,6 +30,10 @@ class OnPayTokenStorage implements TokenStorageInterface
         return (string)$this->config->getRefreshToken();
     }
 
+    /**
+     * @param  $token
+     * @return void
+     */
     public function saveToken($token)
     {
         $this->config->setRefreshToken($token);

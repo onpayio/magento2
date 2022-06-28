@@ -24,7 +24,7 @@
     <h3><?= $block->escapeHtml(__('Could not get OrderID')); ?></h3>
 <?php elseif ($block->isAlreadyPaid()): ?>
     <h3><?= $block->escapeHtml(__('This order has already been processed')); ?></h3>
-    <p><?= $block->escapeHtml(__('Order ID: %s', $block->getOrderId());?></p>
+    <p><?= $block->escapeHtml(__('Order ID: %s', $block->getOrderId()));?></p>
 <?php else: ?>
     <h3><?= $block->escapeHtml(__('Payment window is not configured correct')); ?></h3>
 <?php endif; ?>

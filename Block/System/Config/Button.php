@@ -28,19 +28,36 @@ class Button extends Field
 {
     protected $_template = 'OnPay_Magento2::system/config/button.phtml';
 
+    /**
+     * @param  AbstractElement $element
+     * @return string
+     */
     public function render(AbstractElement $element)
     {
         $element->unsScope()->unsCanUseWebsiteValue()->unsCanUseDefaultValue();
         return parent::render($element);
     }
+
+    /**
+     * @param  AbstractElement $element
+     * @return string
+     */
     protected function _getElementHtml(AbstractElement $element)
     {
         return $this->_toHtml();
     }
+
+    /**
+     * @return string
+     */
     public function getCustomUrl()
     {
         return $this->getUrl('/onpay/auth/index');
     }
+
+    /**
+     * @return string
+     */
     public function getButtonHtml()
     {
         $button = $this->getLayout()->createBlock(\Magento\Backend\Block\Widget\Button::class)->setData(['id' => 'btn_id', 'label' => __('1-Click OnPay Setup')]);

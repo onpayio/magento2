@@ -22,11 +22,16 @@
 
 namespace OnPay\Magento2\Block;
 
+use Magento\Directory\Model\Region;
 use Magento\Directory\Model\RegionFactory;
+use Magento\Framework\Exception\InputException;
+use Magento\Framework\Stdlib\Cookie\FailureToSendException;
 use Magento\Framework\Stdlib\CookieManagerInterface;
 use Magento\Framework\View\Element\Template;
 use Magento\Framework\View\Element\Template\Context;
+use Magento\Sales\Model\Order;
 use Magento\Sales\Model\OrderFactory;
+use OnPay\API\Exception\InvalidFormatException;
 use OnPay\Magento2\Helper\Config;
 use OnPay\API\PaymentWindow;
 use OnPay\API\PaymentWindow\PaymentInfo;
@@ -95,13 +100,13 @@ class RedirectUrl extends Template
     protected $paymentWindow;
 
     /**
-     * @param Context $context
-     * @param Config $helper
+     * @param Context                $context
+     * @param Config                 $helper
      * @param CookieManagerInterface $cookieManager
-     * @param OrderFactory $orderFactory
-     * @param Countries $isoCodesCountries
-     * @param RegionFactory $regionFactory
-     * @param ManageOnPay $manageOnPay
+     * @param OrderFactory           $orderFactory
+     * @param Countries              $isoCodesCountries
+     * @param RegionFactory          $regionFactory
+     * @param ManageOnPay            $manageOnPay
      */
     public function __construct(
         Context                     $context,
@@ -125,8 +130,8 @@ class RedirectUrl extends Template
 
     /**
      * @return string|null
-     * @throws \Magento\Framework\Exception\InputException
-     * @throws \Magento\Framework\Stdlib\Cookie\FailureToSendException
+     * @throws InputException
+     * @throws FailureToSendException
      */
     public function getOrderId()
     {
@@ -139,8 +144,8 @@ class RedirectUrl extends Template
 
     /**
      * @return void
-     * @throws \Magento\Framework\Exception\InputException
-     * @throws \Magento\Framework\Stdlib\Cookie\FailureToSendException
+     * @throws InputException
+     * @throws FailureToSendException
      */
     private function deleteOrderCookie()
     {
@@ -148,8 +153,8 @@ class RedirectUrl extends Template
     }
 
     /**
-     * @param $orderId
-     * @return \Magento\Sales\Model\Order
+     * @param  $orderId
+     * @return Order
      */
     protected function getOrderDetails($orderId)
     {
@@ -159,7 +164,7 @@ class RedirectUrl extends Template
     }
 
     /**
-     * @param $code
+     * @param  $code
      * @return Countries\Country|null
      */
     private function getByAlpha2($code)
@@ -168,8 +173,8 @@ class RedirectUrl extends Template
     }
 
     /**
-     * @param $regionId
-     * @return \Magento\Directory\Model\Region
+     * @param  $regionId
+     * @return Region
      */
     private function getRegion($regionId)
     {
@@ -178,7 +183,7 @@ class RedirectUrl extends Template
 
     /**
      * @return PaymentWindow|null
-     * @throws \OnPay\API\Exception\InvalidFormatException
+     * @throws InvalidFormatException
      */
     protected function getPaymentWindow()
     {
@@ -190,7 +195,7 @@ class RedirectUrl extends Template
 
     /**
      * @return PaymentWindow|null
-     * @throws \OnPay\API\Exception\InvalidFormatException
+     * @throws InvalidFormatException
      */
     protected function createPaymentWindow()
     {
@@ -356,7 +361,8 @@ class RedirectUrl extends Template
     /**
      * @return array|null
      */
-    public function getFormFields() {
+    public function getFormFields()
+    {
         $paymentWindow = $this->getPaymentWindow();
         if (null === $paymentWindow) {
             return null;

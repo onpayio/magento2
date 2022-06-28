@@ -26,6 +26,7 @@ use Magento\Framework\Api\AttributeValueFactory;
 use Magento\Framework\Api\ExtensionAttributesFactory;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Data\Collection\AbstractDb;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Model\ResourceModel\AbstractResource;
 use Magento\Framework\Registry;
@@ -33,6 +34,7 @@ use Magento\Payment\Helper\Data;
 use Magento\Payment\Model\InfoInterface;
 use Magento\Payment\Model\Method\AbstractMethod;
 use Magento\Payment\Model\Method\Logger;
+use Magento\Quote\Api\Data\CartInterface;
 use Magento\Sales\Model\Order\Payment;
 use Magento\Sales\Model\Order\Payment\Transaction;
 use Magento\Framework\Validator\Exception as ValidatorException;
@@ -91,38 +93,38 @@ abstract class AbstractOnPayMethod extends AbstractMethod
     /**
      * @var Config
      */
-    protected Config $helper;
+    protected $helper;
 
     /**
      * @var Currency
      */
-    protected Currency $currencyHelper;
+    protected $currencyHelper;
 
     /**
      * @var BuilderInterface
      */
-    protected BuilderInterface $transactionBuilder;
+    protected $transactionBuilder;
 
     /**
      * @var OnPayAPI
      */
-    protected OnPayAPI $onPayApi;
+    protected $onPayApi;
 
     /**
      * Construct Function
      *
-     * @param Context $context Concrete implementation for
-     * @param Registry $registry Used to manage values in registry
-     * @param ExtensionAttributesFactory $extensionFactory Factory class for instantiation of extension attributes objects.
-     * @param AttributeValueFactory $customAttributeFactory class AttributeValueFactory
-     * @param Data $paymentData Render payment information block
-     * @param ScopeConfigInterface $scopeConfig ScopeConfig
-     * @param Logger $logger Logger for payment related information (request, response, etc.) which is used for debug
-     * @param AbstractResource|null $resource Abstract resource model
-     * @param AbstractDb|null $resourceCollection Base items collection class
-     * @param Config $helper Onpay Helper
-     * @param BuilderInterface $transactionBuilder Order payment information
-     * @param array $data Array
+     * @param Context                    $context                Concrete implementation for
+     * @param Registry                   $registry               Used to manage values in registry
+     * @param ExtensionAttributesFactory $extensionFactory       Factory class for instantiation of extension attributes objects.
+     * @param AttributeValueFactory      $customAttributeFactory class AttributeValueFactory
+     * @param Data                       $paymentData            Render payment information block
+     * @param ScopeConfigInterface       $scopeConfig            ScopeConfig
+     * @param Logger                     $logger                 Logger for payment related information (request, response, etc.) which is used for debug
+     * @param Config                     $helper                 Onpay Helper
+     * @param BuilderInterface           $transactionBuilder     Order payment information
+     * @param AbstractResource|null      $resource               Abstract resource model
+     * @param AbstractDb|null            $resourceCollection     Base items collection class
+     * @param array                      $data                   Array
      */
     public function __construct(
         Context                    $context,
@@ -132,10 +134,10 @@ abstract class AbstractOnPayMethod extends AbstractMethod
         Data                       $paymentData,
         ScopeConfigInterface       $scopeConfig,
         Logger                     $logger,
-        AbstractResource           $resource = null,
-        AbstractDb                 $resourceCollection = null,
         Config                     $helper,
         BuilderInterface           $transactionBuilder,
+        AbstractResource           $resource = null,
+        AbstractDb                 $resourceCollection = null,
         array                      $data = []
     ) {
         parent::__construct(
@@ -155,25 +157,28 @@ abstract class AbstractOnPayMethod extends AbstractMethod
         $this->transactionBuilder = $transactionBuilder;
 
         $tokenStorage = new OnPayTokenStorage($helper);
-        $this->onPayApi = new OnPayAPI($tokenStorage, [
+        $this->onPayApi = new OnPayAPI(
+            $tokenStorage, [
             'client_id' => $helper->getWebsiteUrl(),
             'redirect_uri' => $helper->getAuthorizeUrl()
-        ]);
+            ]
+        );
     }
 
     /**
      * Check whether payment method can be used
-     * @param \Magento\Quote\Api\Data\CartInterface|null $quote
+     *
+     * @param  CartInterface|null $quote
      * @return bool
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
-    public function isAvailable(\Magento\Quote\Api\Data\CartInterface $quote = null)
+    public function isAvailable($quote = null)
     {
         return parent::isAvailable($quote) && $this->helper->isEnabled();
     }
 
     /**
-     * @param int|null $storeId
+     * @param  int|null $storeId
      * @return bool
      */
     public function isActive($storeId = null)
@@ -182,7 +187,7 @@ abstract class AbstractOnPayMethod extends AbstractMethod
     }
 
     /**
-     * @param int|null $storeId
+     * @param  int|null $storeId
      * @return string
      */
     public function getInstructions($storeId = null): string
@@ -194,11 +199,11 @@ abstract class AbstractOnPayMethod extends AbstractMethod
      * Capture Payment
      *
      * @param InfoInterface $payment Payment interface @api
-     * @param float                               $amount  Payment Amount
+     * @param float         $amount  Payment Amount
      *
      * @return void
      */
-    public function capture(InfoInterface $payment, $amount)
+    public function capture($payment, $amount)
     {
         $transactionNumber = $payment->getLastTransId();
         $order = $payment->getOrder();
@@ -213,8 +218,7 @@ abstract class AbstractOnPayMethod extends AbstractMethod
                     $payment->setTransactionId($captureTransactionId)
                         ->setPreparedMessage(__('OnPay - Transaction has been successful.'))
                         ->setShouldCloseParentTransaction(true)
-                        ->setIsTransactionClosed(1)
-                    ;
+                        ->setIsTransactionClosed(1);
 
                     $payment->setCcExpYear($captureTransaction->expiryYear);
                     $payment->setCcExpMonth($captureTransaction->expiryMonth);
@@ -240,11 +244,11 @@ abstract class AbstractOnPayMethod extends AbstractMethod
      * Refund Function
      *
      * @param InfoInterface $payment Payment Interface
-     * @param [type]                               $amount  Amount
+     * @param [type]        $amount  Amount
      *
      * @return void
      */
-    public function refund(InfoInterface $payment, $amount)
+    public function refund($payment, $amount)
     {
         $transactionNumber = $payment->getLastTransId();
         $order = $payment->getOrder();
@@ -275,7 +279,7 @@ abstract class AbstractOnPayMethod extends AbstractMethod
      *
      * @return void
      */
-    public function cancel(InfoInterface $payment)
+    public function cancel($payment)
     {
         $message = __("OnPay - The invoice can't be cancelled at this time. Please try again later or make an offline cancel.");
         $this->cancelTransaction($payment, $message);
@@ -288,13 +292,19 @@ abstract class AbstractOnPayMethod extends AbstractMethod
      *
      * @return void
      */
-    public function void(InfoInterface $payment)
+    public function void($payment)
     {
         $message = __("OnPay - The invoice can't be voided at this time. Please try again later or make an offline cancel.");
         $this->cancelTransaction($payment, $message);
     }
 
-    private function cancelTransaction(InfoInterface $payment, string $message) {
+    /**
+     * @param  $payment
+     * @param  string $message
+     * @return void
+     */
+    private function cancelTransaction($payment, string $message)
+    {
         $transactionNumber = $payment->getLastTransId();
         if ($transactionNumber) {
             $refundTransaction = $this->onPayApi->transaction()->cancelTransaction($transactionNumber);

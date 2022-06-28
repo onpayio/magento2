@@ -20,18 +20,20 @@
 
 namespace OnPay\Magento2\Model\Config\Source;
 
+use Magento\Framework\Option\ArrayInterface;
+
 /**
  * @author    Julian F. Christmas <jc@intelligodenmark.dk>
  * @copyright 2022 Team.blue Denmark A/S
  * @license   http://opensource.org/licenses/gpl-3.0 GNU General Public License, version 3 (GPLv3)
  * @link      https://intelligodenmark.dk
  */
-class PaymentWindowLanguage implements \Magento\Framework\Option\ArrayInterface
+class PaymentWindowLanguage implements ArrayInterface
 {
     /**
      * Return Options Array
      *
-     * @return void
+     * @inheritDoc
      */
     public function toOptionArray()
     {

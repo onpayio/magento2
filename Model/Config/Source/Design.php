@@ -53,11 +53,12 @@ class Design implements ArrayInterface
     /**
      * Config array
      *
-     * @return array
+     * @inheritDoc
      */
     public function toOptionArray()
     {
         try {
+            $options = [];
             foreach ($this->manageOnPay->getPaymentWindowDesigns() as $design) {
                 $options[] = [
                     'value' => $design->name,

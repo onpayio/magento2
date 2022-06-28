@@ -20,6 +20,8 @@
 
 namespace OnPay\Magento2\Model\Config\Source;
 
+use Magento\Framework\Option\ArrayInterface;
+
 /**
  * Type OnPay\Magento2\Model\Config\Source\Type
  *
@@ -28,12 +30,12 @@ namespace OnPay\Magento2\Model\Config\Source;
  * @license   http://opensource.org/licenses/gpl-3.0 GNU General Public License, version 3 (GPLv3)
  * @link      https://intelligodenmark.dk
  */
-class Type implements \Magento\Framework\Option\ArrayInterface
+class Type implements ArrayInterface
 {
     /**
      * Config array
      *
-     * @return array
+     * @inheritDoc
      */
     public function toOptionArray()
     {

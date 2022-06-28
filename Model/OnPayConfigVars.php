@@ -99,6 +99,10 @@ class OnPayConfigVars implements ConfigProviderInterface
         return $config;
     }
 
+    /**
+     * @param  $methodCode
+     * @return false|string
+     */
     private function getLogo($methodCode)
     {
         $logo = $this->helper->getLogo($methodCode);

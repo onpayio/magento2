@@ -23,8 +23,10 @@ namespace OnPay\Magento2\Controller\Auth;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\AreaList;
+use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\App\Cache\TypeListInterface;
 use Magento\Framework\Controller\ResultFactory;
+use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Session\SessionManagerInterface;
 use Magento\Framework\View\Result\PageFactory;
 use Magento\Store\Model\StoreManagerInterface;
@@ -32,18 +34,45 @@ use OnPay\Magento2\Model\ManageOnPay;
 
 class Index extends Action
 {
+    /**
+     * @var PageFactory
+     */
     protected PageFactory $_pageFactory;
 
+    /**
+     * @var StoreManagerInterface
+     */
     protected StoreManagerInterface $_storeManager;
 
+    /**
+     * @var TypeListInterface
+     */
     protected TypeListInterface $cacheTypeList;
 
+    /**
+     * @var SessionManagerInterface
+     */
     protected SessionManagerInterface $_coreSession;
 
+    /**
+     * @var string|null
+     */
     protected ?string $adminFrontName;
 
+    /**
+     * @var ManageOnPay
+     */
     protected ManageOnPay $manageOnPay;
 
+    /**
+     * @param Context                 $context
+     * @param PageFactory             $pageFactory
+     * @param ManageOnPay             $manageOnPay
+     * @param StoreManagerInterface   $storeManager
+     * @param TypeListInterface       $cacheTypeList
+     * @param SessionManagerInterface $coreSession
+     * @param AreaList                $areaList
+     */
     public function __construct(
         Context                 $context,
         PageFactory             $pageFactory,
@@ -62,6 +91,9 @@ class Index extends Action
         parent::__construct($context);
     }
 
+    /**
+     * @return ResultInterface|ResponseInterface
+     */
     public function execute()
     {
         $key = $this->getRequest()->getParam('key');

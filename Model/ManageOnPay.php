@@ -57,10 +57,10 @@ class ManageOnPay
     /**
      * __construct function
      *
-     * @param Config $helper Helper
-     * @param OrderFactory $orderFactory order Factory
-     * @param OrderManagementInterface $orderManagement order Management
-     * @param BuilderInterface $transactionBuilder transaction Builder
+     * @param Config                   $helper             Helper
+     * @param OrderFactory             $orderFactory       order Factory
+     * @param OrderManagementInterface $orderManagement    order Management
+     * @param BuilderInterface         $transactionBuilder transaction Builder
      */
     public function __construct(
         Config              $helper,
@@ -76,10 +76,12 @@ class ManageOnPay
         $this->checkoutSession = $checkoutSession;
 
         $tokenStorage = new OnPayTokenStorage($helper);
-        $this->onPayApi = new OnPayAPI($tokenStorage, [
+        $this->onPayApi = new OnPayAPI(
+            $tokenStorage, [
             'client_id' => $helper->getWebsiteUrl(),
             'redirect_uri' => $helper->getAuthorizeUrl(),
-        ]);
+            ]
+        );
     }
 
     /**
@@ -92,6 +94,7 @@ class ManageOnPay
 
     /**
      * Return URL to redirect to OAuth2 authorization flow
+     *
      * @return string
      */
     public function getAuthorizeUrl()
@@ -101,7 +104,8 @@ class ManageOnPay
 
     /**
      * Handle OAuth2 result
-     * @param string $code
+     *
+     * @param  string $code
      * @return void
      */
     public function finishAuthorization($code)
@@ -130,9 +134,8 @@ class ManageOnPay
         $paymentWindow->setGatewayId($this->helper->getGatewayId());
         $paymentWindow->setSecret($this->helper->getWindowSecret());
 
-        if (
-            $paymentWindow->validatePayment($post) &&
-            intval($post['onpay_errorcode']) === 0
+        if ($paymentWindow->validatePayment($post) 
+            && intval($post['onpay_errorcode']) === 0
         ) {
             $response = true;
             $orderId = $post['onpay_reference'];
@@ -159,8 +162,7 @@ class ManageOnPay
     {
         $response = false;
 
-        if (
-            intval($post['onpay_errorcode']) !== 0
+        if (intval($post['onpay_errorcode']) !== 0
         ) {
             $response = true;
             $orderId = $post['onpay_reference'];
@@ -197,7 +199,7 @@ class ManageOnPay
     /**
      * Update Payment Additional Information
      *
-     * @param array $post    all post values
+     * @param array                 $post    all post values
      * @param OrderPaymentInterface $payment payment object
      *
      * @return void
@@ -213,7 +215,7 @@ class ManageOnPay
     /**
      * Update Transaction Information
      *
-     * @param array  $post  all post values
+     * @param array          $post  all post values
      * @param OrderInterface $order order abject
      *
      * @return void
@@ -242,10 +244,9 @@ class ManageOnPay
             $payment->setCcSecureVerify($post['onpay_3dsecure']);
         }
 
-        if (
-            array_key_exists('onpay_method', $post) &&
-            $post['onpay_method'] === 'card' &&
-            array_key_exists('onpay_cardtype', $post)
+        if (array_key_exists('onpay_method', $post) 
+            && $post['onpay_method'] === 'card' 
+            && array_key_exists('onpay_cardtype', $post)
         ) {
             $payment->setCcType($post['onpay_cardtype']);
             if (array_key_exists('onpay_cardmask', $post)) {

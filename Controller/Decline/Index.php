@@ -18,17 +18,31 @@
  */
 namespace OnPay\Magento2\Controller\Decline;
 
-class Index extends \Magento\Framework\App\Action\Action
+use Magento\Framework\App\Action\Action;
+use Magento\Framework\App\Action\Context;
+use Magento\Framework\App\ResponseInterface;
+use Magento\Framework\Controller\ResultFactory;
+use Magento\Framework\Controller\ResultInterface;
+use Magento\Framework\View\Result\PageFactory;
+use OnPay\Magento2\Model\ManageOnPay;
+
+class Index extends Action
 {
+    /**
+     * @var PageFactory
+     */
     protected $_pageFactory;
-    
+
+    /**
+     * @var ManageOnPay
+     */
     protected $manageOnPay;
     
     public function __construct(
-        \Magento\Framework\App\Action\Context $context,
-        \Magento\Framework\View\Result\PageFactory $pageFactory,
-        \Magento\Framework\Controller\ResultFactory $resultFactory,
-        \OnPay\Magento2\Model\ManageOnPay $manageOnPay
+        Context $context,
+        PageFactory $pageFactory,
+        ResultFactory $resultFactory,
+        ManageOnPay $manageOnPay
     ) {
         $this->_pageFactory = $pageFactory;
         $this->manageOnPay = $manageOnPay;
@@ -36,11 +50,14 @@ class Index extends \Magento\Framework\App\Action\Action
         parent::__construct($context);
     }
 
+    /**
+     * @return ResultInterface|ResponseInterface
+     */
     public function execute()
     {
         $post = $this->getRequest()->getParams();
 
-        $redirect = $this->resultFactory->create(\Magento\Framework\Controller\ResultFactory::TYPE_REDIRECT);
+        $redirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
         $redirect->setUrl('/');
 
         $response = $this->manageOnPay->decline($post);

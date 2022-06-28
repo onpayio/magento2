@@ -12,19 +12,24 @@ declare(strict_types=1);
 
 namespace OnPay\Magento2\Helper;
 
-class Currency {
-    /** @var ISO4217 $converter */
+use Alcohol\ISO4217;
+
+class Currency
+{
+    /**
+     * @var ISO4217 $converter 
+     */
     private $converter;
 
     public function __construct()
     {
-        $this->converter = new \Alcohol\ISO4217();
+        $this->converter = new ISO4217();
     }
 
     /**
-     * @param int $amount
-     * @param string $currency
-     * @param string $decimalSeparator
+     * @param  int    $amount
+     * @param  string $currency
+     * @param  string $decimalSeparator
      * @return int|mixed|string
      */
     public function minorToMajor($amount, $currency, $decimalSeparator = '.')
@@ -39,9 +44,9 @@ class Currency {
     }
 
     /**
-     * @param string $amount
-     * @param string $currency
-     * @param string $separator
+     * @param  string $amount
+     * @param  string $currency
+     * @param  string $separator
      * @return int
      */
     public function majorToMinor($amount, $currency, $separator)
@@ -61,7 +66,7 @@ class Currency {
     }
 
     /**
-     * @param $numeric
+     * @param  $numeric
      * @return object
      */
     public function fromNumeric($numeric)
@@ -84,7 +89,7 @@ class Currency {
     }
 
     /**
-     * @param $alpha3
+     * @param  $alpha3
      * @return object
      */
     public function fromAlpha3($alpha3)
