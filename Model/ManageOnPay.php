@@ -112,10 +112,11 @@ class ManageOnPay
      * Validate and store Payment accept
      *
      * @param array $post all post values
+     * @param bool $saveTransaction If true, the Transaction Info will be stored
      *
      * @return bool
      */
-    public function accept($post)
+    public function accept($post, $saveTransaction = true)
     {
         $response = false;
 

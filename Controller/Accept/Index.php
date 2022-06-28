@@ -72,7 +72,7 @@ class Index extends Action
         $redirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
         $redirect->setUrl('/checkout/onepage/success');
 
-        $response = $this->manageOnPay->accept($post);
+        $response = $this->manageOnPay->accept($post, false);
 
         if (!$response) {
             $this->messageManager->addErrorMessage(
