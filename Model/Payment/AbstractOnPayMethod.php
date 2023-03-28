@@ -147,7 +147,7 @@ abstract class AbstractOnPayMethod extends AbstractMethod
         $tokenStorage = new OnPayTokenStorage($helper);
         $this->onPayApi = new OnPayAPI(
             $tokenStorage, [
-            'client_id' => $helper->getWebsiteUrl(),
+            'client_id' => $helper->getClientId(),
             'redirect_uri' => $helper->getAuthorizeUrl()
             ]
         );
@@ -193,13 +193,12 @@ abstract class AbstractOnPayMethod extends AbstractMethod
      */
     public function capture($payment, $amount)
     {
-        $transactionNumber = $payment->getLastTransId();
         $order = $payment->getOrder();
 
-        if ($transactionNumber) {
+        $onpayUuid = $this->getOnpayUuid($payment);
+        if (null !== $onpayUuid) {
             $minorAmount = $this->currencyHelper->majorToMinor($order->getGrandTotal(), $order->getOrderCurrencyCode(), '.');
-            $captureTransaction = $this->onPayApi->transaction()->captureTransaction($transactionNumber, $minorAmount);
-
+            $captureTransaction = $this->onPayApi->transaction()->captureTransaction($onpayUuid, $minorAmount);
             try {
                 $captureTransactionId = $captureTransaction->uuid;
                 if ($captureTransactionId) {
@@ -238,14 +237,14 @@ abstract class AbstractOnPayMethod extends AbstractMethod
      */
     public function refund($payment, $amount)
     {
-        $transactionNumber = $payment->getLastTransId();
         $order = $payment->getOrder();
 
         $message = __("OnPay - The invoice can't be refund at this time. Please try again later or make an offline refund.");
 
-        if ($transactionNumber) {
+        $onpayUuid = $this->getOnpayUuid($payment);
+        if (null !== $onpayUuid) {
             $minorAmount = $this->currencyHelper->majorToMinor($order->getGrandTotal(), $order->getOrderCurrencyCode(), '.');
-            $refundTransaction = $this->onPayApi->transaction()->refundTransaction($transactionNumber, $minorAmount);
+            $refundTransaction = $this->onPayApi->transaction()->refundTransaction($onpayUuid, $minorAmount);
 
             $refundTransactionId = $refundTransaction->uuid;
             if ($refundTransactionId) {
@@ -269,7 +268,7 @@ abstract class AbstractOnPayMethod extends AbstractMethod
      */
     public function cancel($payment)
     {
-        $message = __("OnPay - The invoice can't be cancelled at this time. Please try again later or make an offline cancel.");
+        $message = __("OnPay - The invoice can't be cancelled at this time. Please try again later or make an offline cancel.")->getText();
         $this->cancelTransaction($payment, $message);
     }
 
@@ -282,7 +281,7 @@ abstract class AbstractOnPayMethod extends AbstractMethod
      */
     public function void($payment)
     {
-        $message = __("OnPay - The invoice can't be voided at this time. Please try again later or make an offline cancel.");
+        $message = __("OnPay - The invoice can't be voided at this time. Please try again later or make an offline cancel.")->getText();
         $this->cancelTransaction($payment, $message);
     }
 
@@ -293,9 +292,9 @@ abstract class AbstractOnPayMethod extends AbstractMethod
      */
     private function cancelTransaction($payment, string $message)
     {
-        $transactionNumber = $payment->getLastTransId();
-        if ($transactionNumber) {
-            $refundTransaction = $this->onPayApi->transaction()->cancelTransaction($transactionNumber);
+        $onpayUuid = $this->getOnpayUuid($payment);
+        if (null !== $onpayUuid) {
+            $refundTransaction = $this->onPayApi->transaction()->cancelTransaction($onpayUuid);
 
             $refundTransactionId = $refundTransaction->uuid;
             if ($refundTransactionId) {
@@ -308,5 +307,20 @@ abstract class AbstractOnPayMethod extends AbstractMethod
         }
 
         throw new ValidatorException($message);
+    }
+
+    /**
+     * Get OnPay uuid for payment
+     *
+     * @param InfoInterface $payment Payment interface @api
+     *
+     * @return string|null
+     */
+    private function getOnpayUuid($payment) {
+        $info = $payment->getAdditionalInformation();
+        if (array_key_exists('OnpayUUID', $info)) {
+            return $info['OnpayUUID'];
+        }
+        return null;
     }
 }
