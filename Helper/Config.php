@@ -30,7 +30,7 @@ use Magento\Store\Model\ScopeInterface;
 
 class Config extends AbstractHelper
 {
-    const PLUGIN_VERSION = '1.0.1';
+    const PLUGIN_VERSION = '1.0.2';
     const MOBILE_PAY_CHECKOUT = 'mobilepay_checkout';
     const LOGO_DIR = 'images/';
     const MODULE_NAME = 'OnPay_Magento2';
