@@ -30,17 +30,35 @@ use OnPay\OnPayAPI;
 
 class ManageOnPay
 {
-    protected Config $helper;
+    /** 
+     * @var Config $helper
+     */
+    protected $helper;
 
-    protected OnPayAPI $onPayApi;
+    /** 
+     * @var OnPayAPI $onPayApi
+     */
+    protected $onPayApi;
 
-    protected OrderFactory $orderFactory;
+    /** 
+     * @var OrderFactory $orderFactory
+     */
+    protected $orderFactory;
 
-    protected OrderManagementInterface $orderManagement;
+    /** 
+     * @var OrderManagementInterface $orderManagement
+     */
+    protected $orderManagement;
 
-    protected BuilderInterface $transactionBuilder;
+    /** 
+     * @var BuilderInterface $transactionBuilder
+     */
+    protected $transactionBuilder;
 
-    protected Session $checkoutSession;
+    /** 
+     * @var Session $checkoutSession
+     */
+    protected $checkoutSession;
 
     /**
      * __construct function
@@ -66,7 +84,7 @@ class ManageOnPay
         $tokenStorage = new OnPayTokenStorage($helper);
         $this->onPayApi = new OnPayAPI(
             $tokenStorage, [
-            'client_id' => $helper->getWebsiteUrl(),
+            'client_id' => $helper->getClientId(),
             'redirect_uri' => $helper->getAuthorizeUrl(),
             ]
         );
@@ -223,7 +241,7 @@ class ManageOnPay
             $transactionComment = __(
                 "OnPay - Transaction Authorized.
 					Authorized Id: %1 -authorized",
-                $post['onpay_uuid'],
+                $post['onpay_uuid']
             );
 
             $payment->setAdditionalInformation("OnpayUUID", $post['onpay_uuid']);

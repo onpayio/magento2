@@ -33,32 +33,32 @@ class Index extends Action
     /**
      * @var PageFactory
      */
-    protected PageFactory $_pageFactory;
+    protected $_pageFactory;
 
     /**
      * @var StoreManagerInterface
      */
-    protected StoreManagerInterface $_storeManager;
+    protected $_storeManager;
 
     /**
      * @var TypeListInterface
      */
-    protected TypeListInterface $cacheTypeList;
+    protected $cacheTypeList;
 
     /**
      * @var SessionManagerInterface
      */
-    protected SessionManagerInterface $_coreSession;
+    protected $_coreSession;
 
     /**
      * @var string|null
      */
-    protected ?string $adminFrontName;
+    protected $adminFrontName;
 
     /**
      * @var ManageOnPay
      */
-    protected ManageOnPay $manageOnPay;
+    protected $manageOnPay;
 
     /**
      * @param Context                 $context

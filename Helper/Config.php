@@ -19,6 +19,7 @@ declare(strict_types=1);
 namespace OnPay\Magento2\Helper;
 
 use Magento\Config\Model\ResourceModel\Config as ResourceConfig;
+use Magento\Config\Model\ResourceModel\Config\Data\CollectionFactory;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
@@ -26,7 +27,6 @@ use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Framework\UrlInterface;
 use Magento\Payment\Model\Method\Logger;
 use Magento\Store\Model\ScopeInterface;
-use OnPay\Magento2\Model\Payment\OnPayMobilePayMethod;
 
 class Config extends AbstractHelper
 {
@@ -61,9 +61,14 @@ class Config extends AbstractHelper
     protected $productMetadata;
 
     /**
+     * @var CollectionFactory
+     */
+    protected $configCollection;
+
+    /**
      * @var string|null
      */
-    private $refreshToken = null;
+    private $oauth2Token = null;
 
     /**
      * Construct Function
@@ -73,19 +78,22 @@ class Config extends AbstractHelper
      * @param UrlInterface             $urlBuilder      Url Builder
      * @param Logger                   $logger          Class Logger for payment related information (request, response, etc.) which is used for debug
      * @param ProductMetadataInterface $productMetadata
+     * @param CollectionFactory        $configCollection
      */
     public function __construct(
         Context                  $context,
         ResourceConfig           $resourceConfig,
         UrlInterface             $urlBuilder,
         Logger                   $logger,
-        ProductMetadataInterface $productMetadata
+        ProductMetadataInterface $productMetadata,
+        CollectionFactory $configCollection
     ) {
         $this->_scopeConfig = $context->getScopeConfig();
         $this->_resourceConfig = $resourceConfig;
         $this->urlBuilder = $urlBuilder;
         $this->logger = $logger;
         $this->productMetadata = $productMetadata;
+        $this->configCollection = $configCollection;
         parent::__construct($context);
     }
 
@@ -151,28 +159,32 @@ class Config extends AbstractHelper
     }
 
     /**
-     * Function getRefreshToken
+     * Function getOauth2Token
      * Store the token internally, for it to be available for subsequent requests without page reload.
      *
      * @return string
      */
-    public function getRefreshToken()
-    {
-        if (null === $this->refreshToken) {
-            $this->refreshToken = (string) $this->getConfigValue('onpayio/payment/refresh_token');
+    public function getOauth2Token() {
+        // Check if already available
+        if (null === $this->oauth2Token) {
+            // Filter for token, to prevent caching
+            $collection = $this->configCollection->create();
+            $collection->addFieldToFilter("path",['eq'=>"onpayio/payment/oauth2_token"]);
+            if($collection->count()>0){
+                $this->oauth2Token = $collection->getFirstItem()->getData()['value'];
+            }
         }
-        return $this->refreshToken;
+        return $this->oauth2Token;
     }
 
     /**
-     * Function setRefreshToken
+     * Function setOauth2Token
      *
      * @param string $token
      */
-    public function setRefreshToken($token)
-    {
-        $this->refreshToken = $token;
-        $this->setConfigValue('onpayio/payment/refresh_token', $token);
+    public function setOauth2Token($token) {
+        $this->oauth2Token = $token;
+        $this->setConfigValue('onpayio/payment/oauth2_token', $token);
     }
 
     /**
@@ -321,6 +333,16 @@ class Config extends AbstractHelper
     public function getWebsiteUrl()
     {
         return $this->urlBuilder->getBaseUrl();
+    }
+
+
+    /**
+     * Function getClientId
+     *
+     * @return string
+     */
+    public function getClientId() {
+        return 'OnPay Magento';
     }
 
     /**

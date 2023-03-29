@@ -24,9 +24,9 @@ use OnPay\Magento2\Helper\Config;
 class OnPayTokenStorage implements TokenStorageInterface
 {
     /**
-     * @var Config
+     * @var Config $config
      */
-    protected Config $config;
+    protected $config;
 
     /**
      * @param Config $config
@@ -39,17 +39,15 @@ class OnPayTokenStorage implements TokenStorageInterface
     /**
      * @return string|null
      */
-    public function getToken()
-    {
-        return (string)$this->config->getRefreshToken();
+    public function getToken() {
+        return (string)$this->config->getOauth2Token();
     }
 
     /**
      * @param  $token
      * @return void
      */
-    public function saveToken($token)
-    {
-        $this->config->setRefreshToken($token);
+    public function saveToken($token) {
+        $this->config->setOauth2Token($token);
     }
 }
