@@ -27,12 +27,16 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\OrderFactory;
 use OnPay\API\Exception\InvalidFormatException;
 use OnPay\Magento2\Helper\Config;
+use OnPay\OnPayAPI;
 use OnPay\API\PaymentWindow;
+use OnPay\API\PaymentService;
+use OnPay\API\Payment\SimplePayment;
 use OnPay\API\PaymentWindow\PaymentInfo;
 use OnPay\Magento2\Helper\Currency;
 use OnPay\Magento2\Model\ManageOnPay;
 use OnPay\Magento2\Model\Payment\OnPaySelectMethod;
 use OnPay\Magento2\Model\Payment\OnPayMobilePayCheckoutMethod;
+use OnPay\Magento2\Model\OnPayTokenStorage;
 use Sokil\IsoCodes\Database\Countries;
 
 class RedirectUrl extends Template
@@ -81,9 +85,14 @@ class RedirectUrl extends Template
     protected $manageOnPay;
 
     /**
-     * @var PaymentWindow|null
+     * @var SimplePayment|null
      */
-    protected $paymentWindow;
+    protected $payment;
+
+    /**
+     * @var OnPayAPI
+     */
+    protected $onPayApi;
 
     /**
      * @param Context                $context
@@ -111,7 +120,15 @@ class RedirectUrl extends Template
         $this->regionFactory = $regionFactory;
         $this->manageOnPay = $manageOnPay;
         $this->currencyHelper = new Currency();
-        $this->paymentWindow = null;
+        $this->payment = null;
+
+        $tokenStorage = new OnPayTokenStorage($helper);
+        $this->onPayApi = new OnPayAPI(
+            $tokenStorage, [
+            'client_id' => $helper->getWebsiteUrl(),
+            'redirect_uri' => $helper->getAuthorizeUrl()
+            ]
+        );
     }
 
     /**
@@ -168,15 +185,31 @@ class RedirectUrl extends Template
     }
 
     /**
+     * @return string|null
+     */
+    public function getPaymentUrl()
+    {
+        $payment = $this->getPayment();
+        if (null === $payment) {
+            return null;
+        }
+        return $payment->getPaymentWindowLink();
+    }
+
+    /**
      * @return PaymentWindow|null
      * @throws InvalidFormatException
      */
-    protected function getPaymentWindow()
+    protected function getPayment()
     {
-        if (null === $this->paymentWindow) {
-            $this->paymentWindow = $this->createPaymentWindow();
+        if (null === $this->payment) {
+            $paymentService = new PaymentService($this->onPayApi);
+            $paymentWindow = $this->createPaymentWindow();
+            if (null !== $paymentWindow && $paymentWindow->isValid()) {
+                $this->payment = $paymentService->createNewPayment($paymentWindow);
+            }
         }
-        return $this->paymentWindow;
+        return $this->payment;
     }
 
     /**
@@ -216,7 +249,7 @@ class RedirectUrl extends Template
         $paymentWindow->set3DSecure($this->helper->getSecure());
         $paymentWindow->setLanguage($this->helper->getPaymentWindowLanguage());
         $paymentWindow->setDesign($this->helper->getDesign());
-        $paymentWindow->setExpiration($this->helper->getExpiration());
+        $paymentWindow->setExpiration(intval($this->helper->getExpiration()));
 
         $method = $payment->getMethod();
         if ($method !== OnPaySelectMethod::METHOD_CODE) {
@@ -318,41 +351,5 @@ class RedirectUrl extends Template
         }
 
         return false;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isValid()
-    {
-        $paymentWindow = $this->getPaymentWindow();
-        if (null === $paymentWindow) {
-            return false;
-        }
-        return $paymentWindow->isValid();
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getActionUrl()
-    {
-        $paymentWindow = $this->getPaymentWindow();
-        if (null === $paymentWindow) {
-            return null;
-        }
-        return $paymentWindow->getActionUrl();
-    }
-
-    /**
-     * @return array|null
-     */
-    public function getFormFields()
-    {
-        $paymentWindow = $this->getPaymentWindow();
-        if (null === $paymentWindow) {
-            return null;
-        }
-        return $paymentWindow->getFormFields();
     }
 }
