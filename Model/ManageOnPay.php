@@ -86,6 +86,7 @@ class ManageOnPay
             $tokenStorage, [
             'client_id' => $helper->getClientId(),
             'redirect_uri' => $helper->getAuthorizeUrl(),
+            'platform' => 'Magento 2/' . Config::PLUGIN_VERSION . '/' . $this->helper->getMagentoVersion(),
             ]
         );
     }
