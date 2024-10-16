@@ -125,7 +125,7 @@ class RedirectUrl extends Template
         $tokenStorage = new OnPayTokenStorage($helper);
         $this->onPayApi = new OnPayAPI(
             $tokenStorage, [
-            'client_id' => $helper->getWebsiteUrl(),
+            'client_id' => $helper->getClientId(),
             'redirect_uri' => $helper->getAuthorizeUrl()
             ]
         );
