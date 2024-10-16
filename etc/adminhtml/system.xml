@@ -26,13 +26,13 @@
                     <field id="gateway_id" type="text" sortOrder="30" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                         <label>Gateway ID</label>
                         <validate>required-entry</validate>
-                        <frontend_model>OnPay\Magento2\Block\System\Config\Readonly</frontend_model>
+                        <frontend_model>OnPay\Magento2\Block\System\Config\OnlyRead</frontend_model>
                         <config_path>onpayio/payment/gateway_id</config_path>
                     </field>
                     <field id="window_secret" type="text" sortOrder="40" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                         <label>Window secret</label>
                         <validate>required-entry</validate>
-                        <frontend_model>OnPay\Magento2\Block\System\Config\Readonly</frontend_model>
+                        <frontend_model>OnPay\Magento2\Block\System\Config\OnlyRead</frontend_model>
                         <config_path>onpayio/payment/window_secret</config_path>
                     </field>
                     <field id="payment_window_language" type="select" sortOrder="50" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
