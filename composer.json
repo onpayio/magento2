@@ -9,11 +9,12 @@
         "onpay"
     ],
     "require": {
-        "php": "^7.2 || ^8.0",
-        "magento/magento2-base": "^2.3.0",
-        "onpayio/php-sdk": "^1.0",
-        "alcohol/iso4217": "^3.1",
-        "sokil/php-isocodes": "3.3.7"
+        "php": "^7.4 || ^8.0",
+        "magento/magento2-base": "^2.4.0",
+        "onpayio/php-sdk": "^1.0.30",
+        "alcohol/iso4217": "^4.2.0",
+        "sokil/php-isocodes": "4.2.0",
+        "sokil/php-isocodes-db-only": "4.0.7"
     },
     "autoload": {
         "files": [
