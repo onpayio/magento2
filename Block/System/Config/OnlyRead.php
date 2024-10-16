@@ -19,7 +19,7 @@ namespace OnPay\Magento2\Block\System\Config;
 use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Framework\Data\Form\Element\AbstractElement;
 
-class Readonly extends Field
+class OnlyRead extends Field
 {
     /**
      * @param  AbstractElement $element

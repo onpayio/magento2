@@ -18,6 +18,7 @@ namespace OnPay\Magento2\Model;
 
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\ScopeInterface;
+use Magento\Framework\Exception\AlreadyExistsException;
 use Magento\Sales\Api\OrderManagementInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Api\Data\OrderInterface;
@@ -274,7 +275,11 @@ class ManageOnPay
 
         $payment->setAdditionalInformation(Transaction::RAW_DETAILS, (array)$post);
 
-        $payment->save();
-        $order->save();
+        try {
+            $payment->save();
+            $order->save();
+        } catch (AlreadyExistsException $e) {
+            // We catch already exists exception here, if encountered we're not gonna do anything.
+        }
     }
 }
