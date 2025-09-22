@@ -8,7 +8,7 @@ Payment Gateway Extension for Magento 2, based on the official OnPay PHP SDK. Th
 
 The plugin is tested and confirmed working on
 
--   Magento 2.4.7
+-   Magento 2.4.8
 
 ## Usage
 
