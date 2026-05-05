@@ -79,7 +79,7 @@
                     </field>
                 </group>
                 <group id="onpay_select" sortOrder="20" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
-                    <label>OnPay Select Pament Method</label>
+                    <label>OnPay Select Payment Method</label>
                     <field id="active" type="select" sortOrder="10" showInWebsite="1" showInStore="1" showInDefault="1" translate="label">
                         <label>Enabled</label>
                         <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
