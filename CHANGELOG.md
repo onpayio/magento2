@@ -5,6 +5,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 - Added SECURITY.md
+- Removed extra order text and added missing y
 
 ## [1.0.4] - 2024-10-16
 - Added general platform that identifies the plugin with the API.
