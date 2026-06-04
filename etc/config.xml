@@ -57,6 +57,36 @@
                 <logo>mobilepay.svg</logo>
                 <logo_title>MobilePay</logo_title>
             </onpay_mobilepay>
+            <onpay_applepay>
+                <group>onpay</group>
+                <model>OnPay\Magento2\Model\Payment\OnPayApplePayMethod</model>
+                <active>0</active>
+                <title>OnPay - Apple Pay</title>
+                <sort_order></sort_order>
+                <instructions></instructions>
+                <logo>apple-pay.svg</logo>
+                <logo_title>Apple Pay</logo_title>
+            </onpay_applepay>
+            <onpay_googlepay>
+                <group>onpay</group>
+                <model>OnPay\Magento2\Model\Payment\OnPayGooglePayMethod</model>
+                <active>0</active>
+                <title>OnPay - Google Pay</title>
+                <sort_order></sort_order>
+                <instructions></instructions>
+                <logo>google-pay.svg</logo>
+                <logo_title>Google Pay</logo_title>
+            </onpay_googlepay>
+            <onpay_klarna>
+                <group>onpay</group>
+                <model>OnPay\Magento2\Model\Payment\OnPayKlarnaMethod</model>
+                <active>0</active>
+                <title>OnPay - Klarna</title>
+                <sort_order></sort_order>
+                <instructions></instructions>
+                <logo>klarna.svg</logo>
+                <logo_title>Klarna</logo_title>
+            </onpay_klarna>
             <onpay_viabill>
                 <group>onpay</group>
                 <model>OnPay\Magento2\Model\Payment\OnPayViaBillMethod</model>

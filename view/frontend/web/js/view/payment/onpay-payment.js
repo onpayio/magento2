@@ -40,6 +40,18 @@ define(
                 component: 'OnPay_Magento2/js/view/payment/method-renderer/onpay-mobilepay'
             },
             {
+                type: 'onpay_applepay',
+                component: 'OnPay_Magento2/js/view/payment/method-renderer/onpay-applepay'
+            },
+            {
+                type: 'onpay_googlepay',
+                component: 'OnPay_Magento2/js/view/payment/method-renderer/onpay-googlepay'
+            },
+            {
+                type: 'onpay_klarna',
+                component: 'OnPay_Magento2/js/view/payment/method-renderer/onpay-klarna'
+            },
+            {
                 type: 'onpay_viabill',
                 component: 'OnPay_Magento2/js/view/payment/method-renderer/onpay-viabill'
             },
