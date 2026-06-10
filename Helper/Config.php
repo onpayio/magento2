@@ -288,16 +288,6 @@ class Config extends AbstractHelper
     }
 
     /**
-     * Function getOrderStatusAfterPayment
-     *
-     * @return boolean
-     */
-    public function isAutoCapture()
-    {
-        return (bool) $this->getConfigValue('onpayio/payment/auto_capture');
-    }
-
-    /**
      * @return string
      */
     public function getAuthorizeUrl()

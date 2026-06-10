@@ -19,10 +19,25 @@ namespace OnPay\Magento2\Block\System\Config;
 use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Backend\Block\Template\Context;
 use Magento\Framework\Data\Form\Element\AbstractElement;
+use OnPay\Magento2\Helper\Config;
 
 class Button extends Field
 {
     protected $_template = 'OnPay_Magento2::system/config/button.phtml';
+
+    /**
+     * @var Config
+     */
+    protected $config;
+
+    public function __construct(
+        Context $context,
+        Config $config,
+        array $data = []
+    ) {
+        parent::__construct($context, $data);
+        $this->config = $config;
+    }
 
     /**
      * @param  AbstractElement $element
@@ -30,8 +45,23 @@ class Button extends Field
      */
     public function render(AbstractElement $element)
     {
+        if ($this->isGatewayLinked()) {
+            return '';
+        }
         $element->unsScope()->unsCanUseWebsiteValue()->unsCanUseDefaultValue();
         return parent::render($element);
+    }
+
+    /**
+     * Returns true when a Gateway ID and an OAuth2 API token are both stored,
+     * meaning the merchant has already completed the 1-Click OnPay setup.
+     *
+     * @return bool
+     */
+    private function isGatewayLinked()
+    {
+        return $this->config->getGatewayId() !== ''
+            && (string) $this->config->getOauth2Token() !== '';
     }
 
     /**

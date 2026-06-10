@@ -18,6 +18,15 @@
 		<method name="onpay_mobilepay">
 			<allow_multiple_address>1</allow_multiple_address>
 		</method>
+		<method name="onpay_applepay">
+			<allow_multiple_address>1</allow_multiple_address>
+		</method>
+		<method name="onpay_googlepay">
+			<allow_multiple_address>1</allow_multiple_address>
+		</method>
+		<method name="onpay_klarna">
+			<allow_multiple_address>1</allow_multiple_address>
+		</method>
 		<method name="onpay_viabill">
 			<allow_multiple_address>1</allow_multiple_address>
 		</method>
