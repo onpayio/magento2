@@ -76,7 +76,7 @@ class Index extends Action
             $logger->addWriter($writer);
             $logger->info('callback-accept');
         } else {
-            $response = $this->manageOnPay->decline($post);
+            $response = $this->manageOnPay->decline($post, true);
 
             $writer = new \Zend_Log_Writer_Stream(BP . '/var/log/callback-decline.log');
             $logger = new \Zend_Log();

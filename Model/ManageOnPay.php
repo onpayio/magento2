@@ -164,45 +164,70 @@ class ManageOnPay
      * Store Payment decline
      *
      * @param array $post all post values
+     * @param bool $trustedCallback true only when invoked from the server-to-server callback controller
      *
      * @return bool
      */
-    public function decline($post)
+    public function decline($post, $trustedCallback = false)
     {
-        $response = false;
+        $requestedIncrementId = isset($post['onpay_reference'])
+            ? (string) $post['onpay_reference']
+            : '';
 
-        if (intval($post['onpay_errorcode']) !== 0
-        ) {
-            $response = true;
-            $orderId = $post['onpay_reference'];
+        if ($trustedCallback) {
+            // Verify the HMAC signature of the callback payload.
+            $paymentWindow = new PaymentWindow();
+            $paymentWindow->setGatewayId($this->helper->getGatewayId());
+            $paymentWindow->setSecret($this->helper->getWindowSecret());
 
-            $order = $this
-                ->orderFactory
-                ->create();
-            $order->loadByIncrementId($orderId);
+            if (!$paymentWindow->validatePayment($post)) {
+                return false;
+            }
 
-            // Set Payment Additional Information
-            $this
-                ->updatePaymentAdditionalInformation(
-                    $post,
-                    $order->getPayment()
-                );
+            if (intval($post['onpay_errorcode']) === 0) {
+                return false;
+            }
+        } else {
+            // Match the requested order against the current checkout session.
+            $sessionIncrementId = (string) $this->checkoutSession->getLastRealOrderId();
 
-            $this->checkoutSession->restoreQuote();
-
-            // Add Comment
-            $order
-                ->addStatusHistoryComment(
-                    __("OnPay - Payment declined")
-                );
-            $order->save();
-
-            $this
-                ->orderManagement
-                ->cancel($order->getId());
+            if ($requestedIncrementId === '' || $sessionIncrementId === '' ||
+                $requestedIncrementId !== $sessionIncrementId
+            ) {
+                // Restore the quote so the customer can retry checkout.
+                $this->checkoutSession->restoreQuote();
+                return true;
+            }
         }
 
-        return $response;
+        $order = $this
+            ->orderFactory
+            ->create();
+        $order->loadByIncrementId($requestedIncrementId);
+
+        // Set Payment Additional Information
+        $this
+            ->updatePaymentAdditionalInformation(
+                $post,
+                $order->getPayment()
+            );
+
+        if (!$trustedCallback) {
+            $this->checkoutSession->restoreQuote();
+        }
+
+        // Add Comment
+        $order
+            ->addStatusHistoryComment(
+                __("OnPay - Payment declined")
+            );
+        $order->save();
+
+        $this
+            ->orderManagement
+            ->cancel($order->getId());
+
+        return true;
     }
 
     /**
