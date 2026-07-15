@@ -76,6 +76,7 @@ class Index extends Action
             $logger->addWriter($writer);
             $logger->info('callback-accept');
         } else {
+            // Server-to-server callback from OnPay; trust is established by HMAC verification inside decline().
             $response = $this->manageOnPay->decline($post, true);
 
             $writer = new \Zend_Log_Writer_Stream(BP . '/var/log/callback-decline.log');

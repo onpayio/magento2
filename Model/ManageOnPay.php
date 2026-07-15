@@ -164,17 +164,17 @@ class ManageOnPay
      * Store Payment decline
      *
      * @param array $post all post values
-     * @param bool $trustedCallback true only when invoked from the server-to-server callback controller
+     * @param bool $verifyHmac when true, validate the payload's HMAC signature
      *
      * @return bool
      */
-    public function decline($post, $trustedCallback = false)
+    public function decline($post, $verifyHmac = false)
     {
         $requestedIncrementId = isset($post['onpay_reference'])
             ? (string) $post['onpay_reference']
             : '';
 
-        if ($trustedCallback) {
+        if ($verifyHmac) {
             // Verify the HMAC signature of the callback payload.
             $paymentWindow = new PaymentWindow();
             $paymentWindow->setGatewayId($this->helper->getGatewayId());
@@ -212,7 +212,7 @@ class ManageOnPay
                 $order->getPayment()
             );
 
-        if (!$trustedCallback) {
+        if (!$verifyHmac) {
             $this->checkoutSession->restoreQuote();
         }
 
