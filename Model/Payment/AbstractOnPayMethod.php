@@ -219,10 +219,10 @@ abstract class AbstractOnPayMethod extends AbstractMethod
                     $transaction->save();
                 }
             } catch (ValidatorException $ex) {
-                throw new ValidatorException($ex->getMessage());
+                throw new ValidatorException(__($ex->getMessage()));
             }
         } else {
-            throw new ValidatorException('Payment is not authorized.');
+            throw new ValidatorException(__('Payment is not authorized.'));
         }
         return $this;
     }
@@ -256,7 +256,7 @@ abstract class AbstractOnPayMethod extends AbstractMethod
             }
         }
 
-        throw new ValidatorException($message);
+        throw new ValidatorException(is_string($message) ? __($message) : $message);
     }
 
     /**
@@ -306,7 +306,7 @@ abstract class AbstractOnPayMethod extends AbstractMethod
             }
         }
 
-        throw new ValidatorException($message);
+        throw new ValidatorException(is_string($message) ? __($message) : $message);
     }
 
     /**
