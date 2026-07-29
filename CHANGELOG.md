@@ -4,6 +4,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+- Fix TypeError when throwing ValidatorException with string message
+- Added unit tests for capture, refund, cancel and void
+- Validate HMAC and session on payment decline
 
 ## [1.0.5] - 2026-06-11
 - Added SECURITY.md
