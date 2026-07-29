@@ -16,11 +16,9 @@
 
 namespace OnPay\Magento2\Block;
 
+use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Directory\Model\Region;
 use Magento\Directory\Model\RegionFactory;
-use Magento\Framework\Exception\InputException;
-use Magento\Framework\Stdlib\Cookie\FailureToSendException;
-use Magento\Framework\Stdlib\CookieManagerInterface;
 use Magento\Framework\View\Element\Template;
 use Magento\Framework\View\Element\Template\Context;
 use Magento\Sales\Model\Order;
@@ -41,13 +39,15 @@ use Sokil\IsoCodes\Database\Countries;
 
 class RedirectUrl extends Template
 {
-    const COOKIE_ORDER_ID = 'onpay_order';
-    const COOKIE_DURATION = 120;
-
     /**
      * @var string|null
      */
     protected $incrementId;
+
+    /**
+     * @var CheckoutSession
+     */
+    protected $checkoutSession;
 
     /**
      * @var Config
@@ -63,11 +63,6 @@ class RedirectUrl extends Template
      * @var Countries
      */
     protected $isoCodesCountries;
-
-    /**
-     * @var CookieManagerInterface
-     */
-    protected $cookieManager;
 
     /**
      * @var OrderFactory
@@ -95,18 +90,18 @@ class RedirectUrl extends Template
     protected $onPayApi;
 
     /**
-     * @param Context                $context
-     * @param Config                 $helper
-     * @param CookieManagerInterface $cookieManager
-     * @param OrderFactory           $orderFactory
-     * @param Countries              $isoCodesCountries
-     * @param RegionFactory          $regionFactory
-     * @param ManageOnPay            $manageOnPay
+     * @param Context         $context
+     * @param Config          $helper
+     * @param CheckoutSession $checkoutSession
+     * @param OrderFactory    $orderFactory
+     * @param Countries       $isoCodesCountries
+     * @param RegionFactory   $regionFactory
+     * @param ManageOnPay     $manageOnPay
      */
     public function __construct(
         Context                     $context,
         Config                      $helper,
-        CookieManagerInterface      $cookieManager,
+        CheckoutSession             $checkoutSession,
         OrderFactory                $orderFactory,
         Countries                   $isoCodesCountries,
         RegionFactory               $regionFactory,
@@ -114,7 +109,7 @@ class RedirectUrl extends Template
     ) {
         parent::__construct($context);
         $this->helper = $helper;
-        $this->cookieManager = $cookieManager;
+        $this->checkoutSession = $checkoutSession;
         $this->orderFactory = $orderFactory;
         $this->isoCodesCountries = $isoCodesCountries;
         $this->regionFactory = $regionFactory;
@@ -133,30 +128,17 @@ class RedirectUrl extends Template
 
     /**
      * @return string|null
-     * @throws InputException
-     * @throws FailureToSendException
      */
     public function getOrderId()
     {
         if (null === $this->incrementId) {
-            $this->incrementId = $this->cookieManager->getCookie(self::COOKIE_ORDER_ID);
-            $this->deleteOrderCookie();
+            $this->incrementId = $this->checkoutSession->getLastRealOrderId();
         }
         return $this->incrementId;
     }
 
     /**
-     * @return void
-     * @throws InputException
-     * @throws FailureToSendException
-     */
-    private function deleteOrderCookie()
-    {
-        $this->cookieManager->deleteCookie(self::COOKIE_ORDER_ID);
-    }
-
-    /**
-     * @param  $orderId
+     * @param  string $orderId
      * @return Order
      */
     protected function getOrderDetails($orderId)
@@ -226,7 +208,16 @@ class RedirectUrl extends Template
 
         $order = $this->getOrderDetails($orderId);
 
+        // Only redirect fresh, pending OnPay orders
+        if (!$order->getId() || $order->getState() !== Order::STATE_NEW) {
+            return null;
+        }
+
         $payment = $order->getPayment();
+        if (null === $payment || 0 !== strpos((string) $payment->getMethod(), 'onpay_')) {
+            return null;
+        }
+
         if (null !== $payment->getLastTransId()) {
             //Cannot redirect: This order is already processed
             return null;

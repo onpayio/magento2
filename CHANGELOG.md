@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix TypeError when throwing ValidatorException with string message
 - Added unit tests for capture, refund, cancel and void
 - Validate HMAC and session on payment decline
+- Use checkout session for OnPay redirect order lookup
 
 ## [1.0.5] - 2026-06-11
 - Added SECURITY.md
