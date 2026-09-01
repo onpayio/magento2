@@ -155,6 +155,16 @@ class ManageOnPay
             $order->loadByIncrementId($orderId);
 
             $this->updateTransactionInformation($post, $order);
+
+            // Hydrate checkout session so the success page renders in a different browser than the one that placed the order. Only reached inside the HMAC-verified branch above.
+            if ($order->getId()) {
+                $this->checkoutSession
+                    ->setLastOrderId($order->getId())
+                    ->setLastRealOrderId($order->getIncrementId())
+                    ->setLastOrderStatus($order->getStatus())
+                    ->setLastQuoteId($order->getQuoteId())
+                    ->setLastSuccessQuoteId($order->getQuoteId());
+            }
         }
 
         return $response;
