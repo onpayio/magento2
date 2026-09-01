@@ -4,6 +4,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+- Show order confirmation when payment completes in a different browser
 
 ## [1.0.6] - 2026-08-04
 - Fix TypeError when throwing ValidatorException with string message
