@@ -1,0 +1,12 @@
+# Snyk (https://snyk.io) policy file
+version: v1.25.0
+ignore:
+  'snyk:lic:composer:magento:magento2-base:Unknown':
+    - '*':
+        reason: Magento platform dependency (OSL-3.0/AFL-3.0) provided by the merchant installation, not distributed with this module
+        created: 2026-10-14T00:00:00.000Z
+  'snyk:lic:composer:magento:magento-composer-installer:OSL-3.0':
+    - '*':
+        reason: Magento platform dependency (OSL-3.0) provided by the merchant installation, not distributed with this module
+        created: 2026-10-14T00:00:00.000Z
+patch: {}
